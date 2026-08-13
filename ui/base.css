@@ -1,0 +1,15 @@
+@layer base {
+  html {
+    font-family: var(--ui-font-sans);
+  }
+
+  body {
+    background: var(--ui-surface);
+    color: var(--ui-on-surface);
+  }
+
+  ::selection {
+    background: var(--ui-primary-container);
+    color: var(--ui-on-primary-container);
+  }
+}

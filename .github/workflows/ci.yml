@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: uv
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: uv sync --all-extras --locked
+
+      - name: Build frontend assets
+        run: npm ci && npm run tailwind-build
+
+      - name: Check Django configuration
+        run: uv run backend/manage.py check
+
+      - name: Check migration consistency
+        run: uv run backend/manage.py makemigrations --check --dry-run
+
+      - name: Check migration readiness plan
+        run: DEBUG=True DJANGO_ENV=verification DATABASE_URL=sqlite:////tmp/djaapp-release-verification.sqlite3 TASKS_BACKEND=django.tasks.backends.immediate.ImmediateBackend uv run backend/manage.py migrate --plan
+
+      - name: Run lint
+        run: uv run ruff check backend/
+
+      - name: Run typecheck
+        run: PYTHONPATH=backend uv run mypy backend/ --config-file /dev/null --ignore-missing-imports --follow-imports=skip --allow-untyped-globals --disable-error-code attr-defined --disable-error-code var-annotated --disable-error-code return-value --disable-error-code assignment --disable-error-code union-attr --disable-error-code misc
+
+      - name: Verify toolchain and documentation parity
+        run: uv run pytest backend/tests/test_toolchain_documentation_parity.py --no-cov
+
+      - name: Run tests with coverage gate
+        run: uv run pytest backend/tests
+
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build production runtime image
+        run: docker build -f docker/app/Dockerfile --target runtime -t djantra:ci .
+
+      - name: Smoke test production runtime image
+        run: bash docker/app/release-smoke.sh djantra:ci

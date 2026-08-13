@@ -1,0 +1,69 @@
+<div class="space-y-6 pb-24">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Users</h1>
+            <p class="mt-1 text-sm text-on-surface-variant">Manage team members, roles, and access.</p>
+        </div>
+        <button type="button" hx-get="{% url 'dashboard:user_create' %}" hx-target="#user-panel" hx-swap="innerHTML" class="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+            <i data-lucide="plus" class="mr-2 h-4 w-4"></i>
+            Create User
+        </button>
+    </div>
+
+    <div id="user-panel">
+        {% include "pages/user_panel_empty.html" %}
+    </div>
+
+    <section class="rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-4 shadow-sm" aria-labelledby="user-transfer-title">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <h2 id="user-transfer-title" class="text-sm font-bold text-on-surface">Import and export users</h2>
+                <p class="mt-1 text-xs text-on-surface-variant">Import updates users by email. Passwords are accepted only during import and are never exported.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'dashboard:user_import_template' %}?format=xls" class="rounded-lg border border-outline px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-on-surface hover:bg-surface-container-low">Excel template</a>
+                <a href="{% url 'dashboard:user_import_template' %}?format=csv" class="rounded-lg border border-outline px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-on-surface hover:bg-surface-container-low">CSV template</a>
+                <a href="{% url 'dashboard:user_export' %}?format=xls" class="rounded-lg border border-outline px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-on-surface hover:bg-surface-container-low">Export XLS</a>
+                <a href="{% url 'dashboard:user_export' %}?format=csv" class="rounded-lg border border-outline px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-on-surface hover:bg-surface-container-low">Export CSV</a>
+            </div>
+        </div>
+        <form method="post" action="{% url 'dashboard:user_import' %}" enctype="multipart/form-data" class="mt-4 flex flex-col gap-3 border-t border-outline-variant/20 pt-4 sm:flex-row sm:items-end">
+            {% csrf_token %}
+            {% include "pages/user_form_field.html" with field=user_import_form.file %}
+            <button type="submit" class="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-primary hover:bg-primary/90">Import users</button>
+        </form>
+    </section>
+
+    <form id="user-filters" class="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-4 shadow-sm" hx-get="{% url 'dashboard:users_table' %}" hx-target="#users-table-region" hx-trigger="input changed delay:400ms, change">
+        {% if filters.role %}<input type="hidden" name="role" value="{{ filters.role }}">{% endif %}
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+            <div class="space-y-1.5 sm:col-span-2">
+                <label for="user-search" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Search Email</label>
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-outline"></i>
+                    <input id="user-search" name="email" value="{{ filters.email }}" type="search" placeholder="Find by email..." class="w-full rounded-lg border border-outline bg-surface-container-lowest py-2 pl-9 pr-3 text-sm transition-colors placeholder:text-outline focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+            <div class="space-y-1.5">
+                <label for="staff-filter" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Staff Status</label>
+                <select id="staff-filter" name="is_staff" class="w-full rounded-lg border border-outline bg-surface-container-lowest px-3 py-2 text-sm transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="">All Users</option>
+                    <option value="true" {% if filters.is_staff == "true" %}selected{% endif %}>Staff Only</option>
+                    <option value="false" {% if filters.is_staff == "false" %}selected{% endif %}>Non-Staff</option>
+                </select>
+            </div>
+            <div class="space-y-1.5">
+                <label for="active-filter" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Account Status</label>
+                <select id="active-filter" name="is_active" class="w-full rounded-lg border border-outline bg-surface-container-lowest px-3 py-2 text-sm transition-colors focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="">All Statuses</option>
+                    <option value="true" {% if filters.is_active == "true" %}selected{% endif %}>Active</option>
+                    <option value="false" {% if filters.is_active == "false" %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <div id="users-table-region" hx-get="{% url 'dashboard:users_table' %}" hx-trigger="usersChanged from:body" hx-include="#user-filters" hx-swap="innerHTML">
+        {% include "pages/users_table.html" %}
+    </div>
+</div>

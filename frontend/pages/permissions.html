@@ -1,0 +1,25 @@
+{% extends "layouts/dashboard_base.html" %}
+
+{% block page_content %}
+<div class="space-y-6">
+    <header class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Administration</p>
+            <h1 class="mt-2 text-3xl font-black text-on-surface">Permissions</h1>
+            <p class="mt-2 text-sm text-on-surface-variant">Manage global resource and action permissions.</p>
+        </div>
+        {% if request.user.is_staff %}<a href="{% url 'dashboard:permission_create' %}" class="rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-primary">Create permission</a>{% endif %}
+    </header>
+    <section class="overflow-hidden rounded-xl border border-outline-variant/10 bg-surface-container-lowest shadow-sm">
+        <table class="w-full text-left text-sm">
+            <thead class="border-b border-outline-variant/10 text-[10px] uppercase tracking-widest text-on-surface-variant"><tr><th class="px-6 py-4">Resource</th><th class="px-6 py-4">Action</th><th class="px-6 py-4">Description</th><th class="px-6 py-4 text-right">Actions</th></tr></thead>
+            <tbody class="divide-y divide-outline-variant/10">
+                {% for permission in permissions %}
+                <tr><td class="px-6 py-4 font-semibold">{{ permission.resource }}</td><td class="px-6 py-4">{{ permission.action }}</td><td class="px-6 py-4 text-on-surface-variant">{{ permission.description|default:"-" }}</td><td class="px-6 py-4 text-right">{% if request.user.is_staff %}<a href="{% url 'dashboard:permission_edit' permission.id %}" class="text-primary hover:underline">Edit</a><form method="post" action="{% url 'dashboard:permission_delete' permission.id %}" class="ml-3 inline">{% csrf_token %}<button type="submit" class="text-error hover:underline">Delete</button></form>{% endif %}</td></tr>
+                {% empty %}<tr><td colspan="4" class="px-6 py-10 text-center text-on-surface-variant">No permissions available.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

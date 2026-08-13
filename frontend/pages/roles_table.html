@@ -1,0 +1,70 @@
+<div class="overflow-hidden rounded-xl border border-outline-variant/10 bg-surface-container-lowest shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-left">
+            <thead class="border-b border-outline-variant/10 bg-surface-container-low/30">
+                <tr>
+                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Role Name</th>
+                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Level</th>
+                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Description</th>
+                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Permissions</th>
+                    <th class="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant/5">
+                {% for role in page_obj %}
+                <tr class="transition-colors hover:bg-surface-container-lowest/70">
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-bold text-on-surface">{{ role.name }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex rounded bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">{{ role.level }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-on-surface-variant">{{ role.description|default:"No description" }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex min-w-8 items-center justify-center rounded-full bg-surface-container-highest px-2 py-1 text-xs font-bold text-on-surface">{{ role.permissions.all|length }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button
+                            type="button"
+                            hx-get="{% url 'dashboard:role_detail' role.id %}"
+                            hx-target="#role-detail-panel"
+                            hx-swap="innerHTML"
+                            class="rounded-lg p-2 text-outline-variant transition-colors hover:bg-primary/5 hover:text-primary"
+                            aria-label="View {{ role.name }}"
+                        >
+                            <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-on-surface-variant">
+                        <div class="flex flex-col items-center gap-3">
+                            <i data-lucide="shield" class="h-10 w-10 text-outline-variant"></i>
+                            <p class="text-sm font-medium">No roles available.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.paginator.count %}
+    <div class="flex flex-col gap-4 border-t border-outline-variant/5 bg-surface-bright px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+            Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} roles
+        </span>
+        <div class="flex items-center gap-2">
+            {% if page_obj.has_previous %}
+            <button type="button" hx-get="{% url 'dashboard:roles_table' %}?page={{ page_obj.previous_page_number }}" hx-target="#roles-table-region" class="rounded-lg border border-outline px-3 py-1.5 text-xs font-bold uppercase tracking-widest hover:bg-surface-container-low">Prev</button>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <button type="button" hx-get="{% url 'dashboard:roles_table' %}?page={{ page_obj.next_page_number }}" hx-target="#roles-table-region" class="rounded-lg border border-outline px-3 py-1.5 text-xs font-bold uppercase tracking-widest hover:bg-surface-container-low">Next</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

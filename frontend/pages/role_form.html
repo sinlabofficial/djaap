@@ -1,0 +1,14 @@
+<div class="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-sm">
+    <div class="mb-5">
+        <h2 class="text-lg font-bold text-on-surface">{% if role %}Edit role{% else %}Create role{% endif %}</h2>
+        {% if saved %}<p class="mt-1 text-sm text-primary" role="status">Role saved.</p>{% endif %}
+    </div>
+    <form method="post" hx-post="{% if role %}{% url 'dashboard:role_edit' role.id %}{% else %}{% url 'dashboard:role_create' %}{% endif %}" hx-target="#role-detail-panel" hx-swap="innerHTML" class="space-y-4">
+        {% csrf_token %}
+        {% include "pages/user_form_field.html" with field=form.name %}
+        {% include "pages/user_form_field.html" with field=form.level %}
+        {% include "pages/user_form_field.html" with field=form.description %}
+        {% include "pages/user_form_field.html" with field=form.presentation_mode_policy %}
+        <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-primary">Save role</button>
+    </form>
+</div>

@@ -1,0 +1,9 @@
+<div class="space-y-1.5">
+    <label for="{{ field.id_for_label }}" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+        {{ field.label }}{% if field.field.required %} *{% endif %}
+    </label>
+    {{ field }}
+    {% if field.errors %}
+    <div class="text-xs font-medium text-error">{{ field.errors|striptags }}</div>
+    {% endif %}
+</div>

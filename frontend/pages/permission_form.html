@@ -1,0 +1,13 @@
+<div class="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-sm">
+    <div class="mb-5">
+        <h2 class="text-lg font-bold text-on-surface">{% if permission %}Edit permission{% else %}Create permission{% endif %}</h2>
+        {% if saved %}<p class="mt-1 text-sm text-primary" role="status">Permission saved.</p>{% endif %}
+    </div>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {% include "pages/user_form_field.html" with field=form.resource %}
+        {% include "pages/user_form_field.html" with field=form.action %}
+        {% include "pages/user_form_field.html" with field=form.description %}
+        <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-primary">Save permission</button>
+    </form>
+</div>

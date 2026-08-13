@@ -1,0 +1,12 @@
+{% extends "layouts/dashboard_base.html" %}
+
+{% block page_content %}
+<div class="mx-auto max-w-2xl space-y-6">
+    <header><p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Example Domain App</p><h1 class="mt-2 text-3xl font-black text-on-surface">{{ item.name }}</h1></header>
+    <article class="space-y-5 rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-6 shadow-sm">
+        <p class="whitespace-pre-line text-sm text-on-surface-variant">{{ item.description|default:"No description provided." }}</p>
+        <dl class="grid gap-3 border-t border-outline-variant/10 pt-5 text-sm sm:grid-cols-2"><div><dt class="text-xs uppercase tracking-widest text-on-surface-variant">Created</dt><dd class="mt-1">{{ item.created|date:"Y-m-d H:i:s" }}</dd></div><div><dt class="text-xs uppercase tracking-widest text-on-surface-variant">Updated</dt><dd class="mt-1">{{ item.updated|date:"Y-m-d H:i:s" }}</dd></div></dl>
+        <div class="flex justify-between gap-3"><a href="{% url 'example:list' %}" class="rounded-lg border border-outline px-4 py-2 text-xs font-bold uppercase tracking-widest">Back</a>{% if can_manage %}<div class="flex gap-2"><a href="{% url 'example:update' item.id %}" class="rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-primary">Edit</a><form method="post" action="{% url 'example:delete' item.id %}">{% csrf_token %}<button type="submit" class="rounded-lg border border-error px-4 py-2 text-xs font-bold uppercase tracking-widest text-error">Delete</button></form></div>{% endif %}</div>
+    </article>
+</div>
+{% endblock %}

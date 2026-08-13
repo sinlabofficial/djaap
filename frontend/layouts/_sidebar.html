@@ -1,0 +1,115 @@
+<div class="relative z-50">
+    <div
+        x-show="mobileOpen"
+        x-transition:enter="transition-opacity ease-out duration-200"
+        x-transition:leave="transition-opacity ease-in duration-150"
+        class="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        @click="mobileOpen = false"
+        x-cloak
+    ></div>
+
+    <aside
+        :class="{
+            'w-64': !sidebarCollapsed && !mobileOpen,
+            'w-20': sidebarCollapsed && !mobileOpen,
+            'translate-x-0': mobileOpen,
+            '-translate-x-full lg:translate-x-0': !mobileOpen
+        }"
+        class="fixed left-0 top-0 h-screen bg-surface-container flex flex-col z-50 transition-all duration-300 ease-in-out border-r border-outline-variant"
+        :style="sidebarCollapsed && !mobileOpen ? 'width: 5rem;' : ''"
+    >
+        <div class="relative flex h-16 items-center gap-1 border-b border-outline-variant p-2" :class="sidebarCollapsed ? 'justify-center' : 'justify-between'">
+            <a id="sidebar-brand" href="/dashboard/" class="flex min-w-0 items-center gap-3" @click="mobileOpen = false">
+                <div data-testid="sidebar-brand-logo" class="h-7 w-7 overflow-hidden rounded-lg bg-primary flex items-center justify-center shrink-0">
+                    {% if organization and organization.logo %}
+                    <img src="{{ organization.logo.url }}" alt="{{ organization.organization_name }} logo" class="h-full w-full object-contain">
+                    {% else %}
+                    <span class="text-on-primary font-bold text-sm">{{ organization.organization_name|first|upper|default:"D" }}</span>
+                    {% endif %}
+                </div>
+                <div x-show="!sidebarCollapsed" x-transition class="flex flex-col truncate">
+                    <span class="font-bold text-on-surface truncate leading-tight">{{ organization.organization_name|default:"djaapp" }}</span>
+                    <span class="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider"></span>
+                </div>
+            </a>
+            <button
+                @click="mobileOpen = false"
+                class="lg:hidden p-1.5 rounded-md hover:bg-surface-container-low text-on-surface-variant"
+            >
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+            <a
+                href="/dashboard/"
+                @click="mobileOpen = false"
+                :class="window.location.pathname === '/dashboard/' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            >
+                <i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0"></i>
+                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Dashboard</span>
+            </a>
+
+            <a
+                href="{% url 'example:list' %}"
+                @click="mobileOpen = false"
+                :class="window.location.pathname.startsWith('/dashboard/example/') ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            >
+                <i data-lucide="package" class="w-5 h-5 shrink-0"></i>
+                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Example Items</span>
+            </a>
+
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <a
+                href="{% url 'dashboard:logs' %}"
+                @click="mobileOpen = false"
+                :class="window.location.pathname.startsWith('/dashboard/logs/') ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
+                class="text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            >
+                <i data-lucide="scroll-text" class="w-5 h-5 shrink-0"></i>
+                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Logs</span>
+            </a>
+            <a
+                href="{% url 'dashboard:settings' %}"
+                @click="mobileOpen = false"
+                :class="window.location.pathname.startsWith('/dashboard/settings/') ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
+                class="text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+            >
+                <i data-lucide="settings" class="w-5 h-5 shrink-0"></i>
+                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Settings</span>
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="p-3 border-t border-outline-variant space-y-1">
+            <a
+                href="{% url 'dashboard:profile' %}"
+                @click="mobileOpen = false"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors"
+            >
+                <i data-lucide="user" class="w-5 h-5 shrink-0"></i>
+                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Profile</span>
+            </a>
+
+            <form method="post" action="{% url 'dashboard:logout' %}" class="m-0">
+                {% csrf_token %}
+                <button
+                    type="submit"
+                    @click="mobileOpen = false"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors text-left"
+                >
+                    <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i>
+                    <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+</div>
+
+<style>
+    [x-cloak] {
+        display: none !important;
+    }
+</style>

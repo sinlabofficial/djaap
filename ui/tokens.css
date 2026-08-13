@@ -1,0 +1,66 @@
+:root {
+  /* Typography: keep the design contract stable across every shell. */
+  --ui-font-sans: Inter, system-ui, sans-serif;
+  --ui-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Brand and semantic colors: primary is the djaapp starterkit teal. */
+  --ui-primary: #0f6b63;
+  --ui-on-primary: #f5fffc;
+  --ui-primary-container: #d8eee9;
+  --ui-on-primary-container: #073b36;
+  --ui-inverse-primary: #8fd3ca;
+  --ui-secondary: #425b58;
+  --ui-on-secondary: #f5fbf9;
+  --ui-secondary-container: #dce9e5;
+  --ui-on-secondary-container: #173430;
+  --ui-tertiary: #7a5d38;
+  --ui-on-tertiary: #fffaf3;
+  --ui-tertiary-container: #eadfcf;
+  --ui-on-tertiary-container: #3e2b18;
+
+  --ui-error: #a74848;
+  --ui-on-error: #fff8f6;
+  --ui-error-container: #f3d9d6;
+  --ui-on-error-container: #5d1f1f;
+  --ui-success: #2c7651;
+  --ui-on-success: #f6fff9;
+  --ui-success-container: #d9f0df;
+  --ui-on-success-container: #164d31;
+  --ui-warning: #996a13;
+  --ui-on-warning: #fffaf0;
+  --ui-warning-container: #faedc8;
+  --ui-on-warning-container: #5a4107;
+
+  /* Tonal surfaces and outlines. */
+  --ui-background: #f4f7f4;
+  --ui-on-background: #17211f;
+  --ui-surface: #f7f9f7;
+  --ui-surface-dim: #cbd8d1;
+  --ui-surface-bright: #fcfdfb;
+  --ui-surface-container-lowest: #ffffff;
+  --ui-surface-container-low: #eef3ef;
+  --ui-surface-container: #e5ece8;
+  --ui-surface-container-high: #dbe5e0;
+  --ui-surface-container-highest: #cedbd4;
+  --ui-surface-variant: #d4dfda;
+  --ui-on-surface: #17211f;
+  --ui-on-surface-variant: #53615d;
+  --ui-inverse-surface: #202c29;
+  --ui-inverse-on-surface: #eff5f2;
+  --ui-outline: #7b8a84;
+  --ui-outline-variant: #d0dad5;
+  --ui-surface-tint: #0f6b63;
+
+  /* Stable sizing primitives from the 4px baseline grid. */
+  --ui-space-xs: 4px;
+  --ui-space-sm: 8px;
+  --ui-space-md: 16px;
+  --ui-space-lg: 24px;
+  --ui-space-xl: 32px;
+  --ui-radius-sm: 0.125rem;
+  --ui-radius: 0.25rem;
+  --ui-radius-md: 0.375rem;
+  --ui-radius-lg: 0.5rem;
+  --ui-radius-xl: 0.75rem;
+  --ui-radius-full: 9999px;
+}

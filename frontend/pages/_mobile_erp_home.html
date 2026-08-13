@@ -1,0 +1,113 @@
+<div class="space-y-6" data-testid="mobile-erp-home">
+    <!-- Hero System Status Banner -->
+    <section data-testid="mobile-erp-hero" class="relative overflow-hidden rounded-2xl border border-primary/20 bg-primary-container p-5 text-on-primary-container shadow-sm">
+        <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-on-primary-container">
+                <span class="grid h-7 w-7 place-items-center rounded-lg bg-primary text-on-primary">
+                    <i data-lucide="activity" class="h-4 w-4" aria-hidden="true"></i>
+                </span>
+                <span>System Status</span>
+            </div>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-success">
+                <span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true"></span> Operational
+            </span>
+        </div>
+        <h2 class="mt-3 text-lg font-bold leading-tight">System Status: All systems operational</h2>
+        <p class="mt-1 text-xs opacity-90">
+            {% if failed_task_count or failed_webhook_count %}
+                Attention: {{ failed_task_count|default:0 }} failed tasks and {{ failed_webhook_count|default:0 }} failed webhooks reported.
+            {% else %}
+                All deployment background tasks and webhooks are operating normally.
+            {% endif %}
+        </p>
+        <div class="mt-4">
+            <a href="{% url 'dashboard:logs' %}" class="inline-flex items-center gap-1.5 rounded-full bg-surface px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-sm">
+                <span>View Reports & Logs</span>
+                <i data-lucide="arrow-right" class="h-3.5 w-3.5" aria-hidden="true"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Welcome Header -->
+    <div class="px-1">
+        <h1 class="text-2xl font-black tracking-tight text-on-surface">Welcome back</h1>
+        <p class="mt-1 text-xs text-on-surface-variant">Access your business modules below.</p>
+    </div>
+
+    <!-- App Launcher Grid -->
+    <section data-testid="mobile-app-launcher" aria-label="ERP Modules" class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <!-- Module: Users -->
+        {% if request.user.is_staff %}
+        <a href="{% url 'dashboard:user_list' %}" class="group flex flex-col items-center justify-center rounded-xl border border-outline-variant bg-surface-container-low p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface-container hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <div class="mb-2 grid h-10 w-10 place-items-center rounded-full bg-primary-container text-on-primary-container transition-transform group-hover:scale-110">
+                <i data-lucide="users" class="h-5 w-5" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-semibold text-on-surface">Users</span>
+        </a>
+        {% endif %}
+
+        <!-- Module: Roles -->
+        {% if request.user.is_staff %}
+        <a href="{% url 'dashboard:role_list' %}" class="group flex flex-col items-center justify-center rounded-xl border border-outline-variant bg-surface-container-low p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface-container hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <div class="mb-2 grid h-10 w-10 place-items-center rounded-full bg-secondary-container text-on-secondary-container transition-transform group-hover:scale-110">
+                <i data-lucide="shield-check" class="h-5 w-5" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-semibold text-on-surface">Roles</span>
+        </a>
+        {% endif %}
+
+        <!-- Module: Audit Logs -->
+        {% if request.user.is_staff %}
+        <a href="{% url 'dashboard:logs' %}" class="group flex flex-col items-center justify-center rounded-xl border border-outline-variant bg-surface-container-low p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface-container hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <div class="mb-2 grid h-10 w-10 place-items-center rounded-full bg-tertiary-container text-on-tertiary-container transition-transform group-hover:scale-110">
+                <i data-lucide="activity" class="h-5 w-5" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-semibold text-on-surface">Audit Logs</span>
+        </a>
+        {% endif %}
+
+        <!-- Module: Profile -->
+        <a href="{% url 'dashboard:profile' %}" class="group flex flex-col items-center justify-center rounded-xl border border-outline-variant bg-surface-container-low p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface-container hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <div class="mb-2 grid h-10 w-10 place-items-center rounded-full bg-surface-container-highest text-on-surface transition-transform group-hover:scale-110">
+                <i data-lucide="user" class="h-5 w-5" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-semibold text-on-surface">Profile</span>
+        </a>
+
+        <!-- Module: Settings -->
+        {% if request.user.is_staff %}
+        <a href="{% url 'dashboard:settings' %}" class="group flex flex-col items-center justify-center rounded-xl border border-outline-variant bg-surface-container-low p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface-container hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <div class="mb-2 grid h-10 w-10 place-items-center rounded-full bg-surface-variant text-on-surface-variant transition-transform group-hover:scale-110">
+                <i data-lucide="settings" class="h-5 w-5" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-semibold text-on-surface">Settings</span>
+        </a>
+        {% endif %}
+
+        <!-- Module: Reports -->
+        {% if request.user.is_staff %}
+        <a href="{% url 'dashboard:logs' %}?tab=background_jobs" class="group flex flex-col items-center justify-center rounded-xl border border-outline-variant bg-surface-container-low p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface-container hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <div class="mb-2 grid h-10 w-10 place-items-center rounded-full bg-secondary-container text-on-secondary-container transition-transform group-hover:scale-110">
+                <i data-lucide="bar-chart-3" class="h-5 w-5" aria-hidden="true"></i>
+            </div>
+            <span class="text-xs font-semibold text-on-surface">Reports</span>
+        </a>
+        {% endif %}
+    </section>
+
+    <!-- Quick Metrics Strip -->
+    <section class="grid grid-cols-3 gap-2.5 pt-2" aria-label="Deployment Summary">
+        <div class="flex flex-col items-center rounded-xl border border-outline-variant bg-surface-container-lowest p-3 text-center shadow-sm">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Roles</span>
+            <span class="mt-1 text-xl font-black text-on-surface">{{ total_roles|default:0 }}</span>
+        </div>
+        <div class="flex flex-col items-center rounded-xl border border-outline-variant bg-surface-container-lowest p-3 text-center shadow-sm">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Users</span>
+            <span class="mt-1 text-xl font-black text-on-surface">{{ total_users|default:0 }}</span>
+        </div>
+        <div class="flex flex-col items-center rounded-xl border border-outline-variant bg-surface-container-lowest p-3 text-center shadow-sm">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Active</span>
+            <span class="mt-1 text-xl font-black text-on-surface">{{ active_users|default:0 }}</span>
+        </div>
+    </section>
+</div>

@@ -1,0 +1,667 @@
+{% comment %}
+  UI Components using Django 6.0 Template Partials
+  This file is included once in dashboard_base.html and components are rendered via {% partial name %}
+
+  Task 7 Part 2 components:
+  - input, textarea, select, modal, toast_container
+{% endcomment %}
+
+{% partialdef input %}
+<div x-data="{
+  id: '{{ id|default:''|escapejs }}',
+  label: '{{ label|default:''|escapejs }}',
+  placeholder: '{{ placeholder|default:''|escapejs }}',
+  disabled: {% if disabled %}true{% else %}false{% endif %},
+  error: '{{ error|default:''|escapejs }}',
+  hint: '{{ hint|default:''|escapejs }}',
+  inputType: '{{ inputType|default:'text'|escapejs }}',
+  showPassword: false,
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+    this.inputType = this.showPassword ? 'text' : 'password';
+  }
+}" class="space-y-1.5" x-init="if ($el.getAttribute('data-type')) inputType = $el.getAttribute('data-type')" {% if error_bind %}x-effect="error = {{ error_bind }}"{% endif %}>
+  <label
+    x-show="label"
+    x-bind:for="id"
+    class="block text-sm font-medium text-on-surface"
+    x-text="label"
+  ></label>
+
+  <div class="relative">
+    <input
+      x-bind:id="id"
+      x-bind:type="inputType"
+      x-bind:placeholder="placeholder"
+      x-bind:disabled="disabled"
+      x-bind:class="{
+        'border-error focus:ring-error': error,
+        'opacity-50 cursor-not-allowed': disabled
+      }"
+      class="w-full px-3 py-2 text-sm bg-surface-container-lowest border border-outline rounded-lg
+             placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+             disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      {% if value %}x-model="{{ value }}"{% endif %}
+    />
+
+    <button
+      x-show="inputType === 'password' || showPassword"
+      type="button"
+      x-on:click="togglePassword()"
+      class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors focus:outline-none"
+      tabindex="-1"
+    >
+      <svg x-show="!showPassword" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      </svg>
+      <svg x-show="showPassword" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+      </svg>
+    </button>
+  </div>
+
+  <p
+    x-show="error"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 -translate-y-1"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 -translate-y-1"
+    class="text-sm text-error"
+    x-text="error"
+  ></p>
+
+  <p
+    x-show="hint && !error"
+    class="text-sm text-outline"
+    x-text="hint"
+  ></p>
+</div>
+{% endpartialdef %}
+
+{% partialdef sticky_form_actions %}
+<div data-testid="mobile-form-actions" class="sticky bottom-0 z-20 -mx-4 mt-6 flex items-center justify-end gap-3 border-t border-outline-variant bg-surface-container-lowest/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-surface-container-lowest/80 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+  {{ content|safe }}
+</div>
+{% endpartialdef %}
+
+{% partialdef responsive_modal %}
+<div x-data="{ open: false }" x-on:open-modal.window="if ($event.detail.id === '{{ id }}') open = true" x-on:close-modal.window="open = false">
+  <div x-show="open" x-cloak class="fixed inset-0 z-50 bg-black/50 p-4 sm:grid sm:place-items-center" role="presentation" x-on:click="open = false">
+    <section class="flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden rounded-2xl bg-surface-container-lowest shadow-2xl sm:max-w-lg sm:rounded-xl" role="dialog" aria-modal="true" aria-labelledby="{{ id }}-title" x-on:click.stop>
+      <header class="flex shrink-0 items-center justify-between gap-4 border-b border-outline-variant px-4 py-4 sm:px-6"><h2 id="{{ id }}-title" class="text-lg font-semibold">{{ title }}</h2><button type="button" class="grid h-11 w-11 place-items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Close" x-on:click="open = false"><i data-lucide="x" aria-hidden="true"></i></button></header>
+      <div class="min-h-0 overflow-y-auto px-4 py-4 sm:px-6">{{ content|safe }}</div>
+      {% if footer %}<footer class="shrink-0 border-t border-outline-variant px-4 py-4 sm:px-6">{{ footer|safe }}</footer>{% endif %}
+    </section>
+  </div>
+</div>
+{% endpartialdef %}
+
+{% partialdef mobile_sheet %}
+<div x-data="{ open: false }" x-on:open-sheet.window="if ($event.detail.id === '{{ id }}') open = true" x-on:close-sheet.window="open = false">
+  <div x-show="open" x-cloak class="fixed inset-0 z-50 bg-black/40" x-on:click="open = false" aria-hidden="true"></div>
+  <section x-show="open" x-cloak x-transition class="fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] overflow-y-auto rounded-t-2xl bg-surface-container-lowest p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="{{ id }}-title">
+    <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-outline-variant" aria-hidden="true"></div><h2 id="{{ id }}-title" class="text-lg font-semibold">{{ title }}</h2><div class="mt-4">{{ content|safe }}</div>
+  </section>
+</div>
+{% endpartialdef %}
+
+{% partialdef responsive_table %}
+<div class="w-full overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-lowest {{ class }}" role="region" aria-label="{{ label|default:'Data table' }}" tabindex="0">
+  <table class="min-w-full text-left">{{ content|safe }}</table>
+</div>
+{% endpartialdef %}
+
+{% partialdef icon_button %}
+<button type="{{ type|default:'button' }}"
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if disabled or is_loading %}disabled{% endif %}
+        aria-label="{{ label }}"
+        {% if described_by %}aria-describedby="{{ described_by }}"{% endif %}
+        class="inline-flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 {{ class }}"
+        {% if x_on %}x-on:click="{{ x_on }}"{% endif %}
+        {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+        {% if hx_post %}hx-post="{{ hx_post }}"{% endif %}>
+  {% if is_loading %}<span class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>{% else %}<i data-lucide="{{ icon|default:'more-horizontal' }}" class="h-5 w-5" aria-hidden="true"></i>{% endif %}
+</button>
+{% endpartialdef %}
+
+{% partialdef checkbox %}
+<label class="flex min-h-11 items-center gap-3 text-sm text-on-surface {{ class }}">
+  <input type="checkbox" name="{{ name }}" value="{{ value|default:'1' }}" {% if checked %}checked{% endif %} {% if disabled %}disabled{% endif %}
+         {% if described_by %}aria-describedby="{{ described_by }}"{% endif %}
+         class="h-5 w-5 rounded border-outline text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50">
+  <span>{{ label }}</span>
+</label>
+{% endpartialdef %}
+
+{% partialdef form_field %}
+<div class="space-y-1.5 {{ class }}" {% if described_by %}aria-describedby="{{ described_by }}"{% endif %}>
+  {% if label %}<label for="{{ id }}" class="block text-sm font-medium text-on-surface">{{ label }}{% if required %}<span class="ml-1 text-error" aria-hidden="true">*</span>{% endif %}</label>{% endif %}
+  {{ content|safe }}
+  {% if hint and not error %}<p id="{{ described_by|default:id|add:'-hint' }}" class="text-sm text-on-surface-variant">{{ hint }}</p>{% endif %}
+  {% if error %}<p id="{{ id }}-error" class="text-sm text-error" role="alert">{{ error }}</p>{% endif %}
+</div>
+{% endpartialdef %}
+
+{% partialdef alert %}
+<div role="{% if variant == 'error' or variant == 'warning' %}alert{% else %}status{% endif %}"
+     class="flex items-start gap-3 rounded-lg border p-4 text-sm {% if variant == 'error' %}border-error/30 bg-error-container text-on-error-container{% elif variant == 'warning' %}border-warning/30 bg-warning-container text-on-warning-container{% elif variant == 'success' %}border-success/30 bg-success-container text-on-success-container{% else %}border-primary/20 bg-primary-container text-on-primary-container{% endif %} {{ class }}">
+  {% if icon %}<i data-lucide="{{ icon }}" class="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true"></i>{% endif %}
+  <div class="min-w-0 flex-1">{% if title %}<p class="font-semibold">{{ title }}</p>{% endif %}<p>{{ message|default:content }}</p></div>
+</div>
+{% endpartialdef %}
+
+{% partialdef confirm_dialog %}
+<div x-data="{ open: false }" x-on:open-confirm.window="if ($event.detail.id === '{{ id }}') open = true" x-on:close-confirm.window="open = false">
+  <div x-show="open" x-cloak class="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" role="presentation">
+    <section class="w-full max-w-md rounded-xl bg-surface-container-lowest p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="{{ id }}-title">
+      <h2 id="{{ id }}-title" class="text-lg font-semibold text-on-surface">{{ title }}</h2>
+      <p class="mt-2 text-sm text-on-surface-variant">{{ message }}</p>
+      <div class="mt-6 flex justify-end gap-3">{{ actions|safe }}</div>
+    </section>
+  </div>
+</div>
+{% endpartialdef %}
+
+{% partialdef drawer %}
+<div x-data="{ open: false }" x-on:open-drawer.window="if ($event.detail.id === '{{ id }}') open = true" x-on:close-drawer.window="open = false">
+  <div x-show="open" x-cloak class="fixed inset-0 z-50 bg-black/40" x-on:click="open = false" aria-hidden="true"></div>
+  <aside x-show="open" x-cloak x-transition class="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-surface-container-lowest p-5 shadow-2xl sm:inset-y-0 sm:left-auto sm:right-0 sm:max-h-none sm:w-full sm:max-w-md sm:rounded-none sm:rounded-l-2xl" role="dialog" aria-modal="true" aria-labelledby="{{ id }}-title">
+    <div class="flex items-center justify-between gap-4"><h2 id="{{ id }}-title" class="text-lg font-semibold">{{ title }}</h2><button type="button" aria-label="Close" class="h-11 w-11 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" x-on:click="open = false"><i data-lucide="x" aria-hidden="true"></i></button></div>
+    <div class="mt-4">{{ content|safe }}</div>
+  </aside>
+</div>
+{% endpartialdef %}
+
+{% partialdef data_list %}
+<div class="divide-y divide-outline-variant/30 {{ class }}" role="list">
+  {% if is_loading %}{% partial loading_state %}{% elif is_empty %}{% partial empty_state %}{% else %}{% for item in items %}<div role="listitem" class="py-4">{% if item_template %}{% include item_template with item=item %}{% else %}{{ item }}{% endif %}</div>{% endfor %}{% endif %}
+</div>
+{% endpartialdef %}
+
+{% partialdef pagination %}
+<nav class="flex items-center justify-between gap-3 text-sm" aria-label="Pagination">
+  {% if page_obj.has_previous %}<a class="min-h-11 rounded-lg px-3 py-2 text-primary hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" href="?page={{ page_obj.previous_page_number }}">Previous</a>{% else %}<span class="px-3 py-2 text-on-surface-variant/50">Previous</span>{% endif %}
+  <span class="text-on-surface-variant">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="min-h-11 rounded-lg px-3 py-2 text-primary hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" href="?page={{ page_obj.next_page_number }}">Next</a>{% else %}<span class="px-3 py-2 text-on-surface-variant/50">Next</span>{% endif %}
+</nav>
+{% endpartialdef %}
+
+{% partialdef empty_state %}
+<div class="rounded-lg border border-dashed border-outline-variant p-8 text-center {{ class }}" role="status">
+  {% if icon %}<i data-lucide="{{ icon }}" class="mx-auto h-8 w-8 text-outline-variant" aria-hidden="true"></i>{% endif %}
+  <p class="mt-3 text-sm font-medium text-on-surface">{{ title|default:'Nothing here yet' }}</p>
+  {% if message %}<p class="mt-1 text-sm text-on-surface-variant">{{ message }}</p>{% endif %}
+  {% if action %}<div class="mt-4">{{ action|safe }}</div>{% endif %}
+</div>
+{% endpartialdef %}
+
+{% partialdef loading_state %}
+<div class="flex items-center justify-center gap-3 p-8 text-sm text-on-surface-variant" role="status" aria-live="polite">
+  <span class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true"></span>{{ message|default:'Loading' }}
+</div>
+{% endpartialdef %}
+
+{% partialdef skeleton %}
+<div class="animate-pulse space-y-3 {{ class }}" aria-hidden="true"><div class="h-4 w-1/3 rounded bg-surface-container-high"></div><div class="h-4 w-full rounded bg-surface-container-high"></div><div class="h-4 w-2/3 rounded bg-surface-container-high"></div></div>
+{% endpartialdef %}
+
+{% partialdef textarea %}
+<div x-data="{
+  id: '{{ id|default:''|escapejs }}',
+  label: '{{ label|default:''|escapejs }}',
+  placeholder: '{{ placeholder|default:''|escapejs }}',
+  disabled: {% if disabled %}true{% else %}false{% endif %},
+  error: '{{ error|default:''|escapejs }}',
+  hint: '{{ hint|default:''|escapejs }}'
+}" class="space-y-1.5" {% if error_bind %}x-effect="error = {{ error_bind }}"{% endif %}>
+  <label
+    x-show="label"
+    x-bind:for="id"
+    class="block text-sm font-medium text-on-surface"
+    x-text="label"
+  ></label>
+
+  <textarea
+    x-bind:id="id"
+    x-bind:placeholder="placeholder"
+    x-bind:disabled="disabled"
+    x-bind:class="{
+      'border-error focus:ring-error': error,
+      'opacity-50 cursor-not-allowed': disabled
+    }"
+    class="w-full px-3 py-2 text-sm bg-surface-container-lowest border border-outline rounded-lg
+           placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+           disabled:opacity-50 disabled:cursor-not-allowed transition-colors resize-y min-h-[80px]"
+    {% if value %}x-model="{{ value }}"{% endif %}
+  ></textarea>
+
+  <p
+    x-show="error"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 -translate-y-1"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 -translate-y-1"
+    class="text-sm text-error"
+    x-text="error"
+  ></p>
+
+  <p
+    x-show="hint && !error"
+    class="text-sm text-outline"
+    x-text="hint"
+  ></p>
+</div>
+{% endpartialdef %}
+
+{% partialdef select %}
+<div class="space-y-1.5" x-data="{
+  id: '{{ id|default:''|escapejs }}',
+  label: '{{ label|default:''|escapejs }}',
+  placeholder: '{{ placeholder|default:''|escapejs }}',
+  disabled: {% if disabled %}true{% else %}false{% endif %},
+  error: '{{ error|default:''|escapejs }}',
+  open: false,
+  value: {% if value %}{{ value }}{% else %}null{% endif %},
+  options: {% if options %}{{ options }}{% else %}[]{% endif %},
+  get selectedOption() {
+    return this.options.find(o => o.value === this.value) || null;
+  },
+  toggle() { this.open = !this.open; },
+  select(option) {
+    if (option.disabled) return;
+    this.value = option.value;
+    this.open = false;
+    this.$dispatch('change', option.value);
+  }
+}" x-modelable="value" {% if value %}x-model="{{ value }}"{% endif %} {% if error_bind %}x-effect="error = {{ error_bind }}"{% endif %}>
+  <label
+    x-show="label"
+    class="block text-sm font-medium text-on-surface"
+    x-text="label"
+  ></label>
+
+  <div class="relative">
+    <button
+      type="button"
+      x-on:click="toggle()"
+      x-on:click.outside="open = false"
+      x-bind:disabled="disabled"
+      x-bind:class="{
+        'border-error focus:ring-error': error,
+        'opacity-50 cursor-not-allowed': disabled
+      }"
+      class="w-full px-3 py-2 text-sm text-left bg-surface-container-lowest border border-outline rounded-lg
+             flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+             disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    >
+      <span x-show="!selectedOption" class="text-outline" x-text="placeholder || 'Select an option'"></span>
+      <span x-show="selectedOption" x-text="selectedOption ? selectedOption.label : ''"></span>
+      <svg class="w-4 h-4 text-outline transition-transform" :class="{ 'rotate-180': open }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+      </svg>
+    </button>
+
+    <div
+      x-show="open"
+      x-cloak
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0 -translate-y-2"
+      x-transition:enter-end="opacity-100 translate-y-0"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100 translate-y-0"
+      x-transition:leave-end="opacity-0 -translate-y-2"
+      class="absolute z-50 w-full mt-1 bg-surface-container-lowest border border-outline rounded-lg shadow-lg overflow-hidden"
+    >
+      <div class="max-h-60 overflow-y-auto py-1">
+        <template x-for="option in options" :key="option.value">
+          <div>
+            <template x-if="option.group">
+              <div class="px-3 py-1.5 text-xs font-semibold text-outline uppercase tracking-wider bg-surface-container" x-text="option.group"></div>
+            </template>
+            <button
+              type="button"
+              x-on:click="select(option)"
+              x-on:keydown.enter="select(option)"
+              x-on:keydown.space.prevent="select(option)"
+              x-bind:class="{
+                'bg-primary/10 text-primary font-medium': value === option.value,
+                'hover:bg-surface-container-low cursor-pointer': value !== option.value && !option.disabled,
+                'opacity-50 cursor-not-allowed': option.disabled
+              }"
+              class="w-full px-3 py-2 text-sm text-left flex items-center justify-between transition-colors focus:outline-none focus:bg-surface-container-low"
+              :disabled="!!option.disabled"
+              :tabindex="option.disabled ? -1 : 0"
+            >
+              <span x-text="option.label"></span>
+              <template x-if="value === option.value">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              </template>
+            </button>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <p
+    x-show="error"
+    x-cloak
+    class="text-sm text-error"
+    x-text="error"
+  ></p>
+</div>
+{% endpartialdef %}
+
+{% partialdef modal %}
+<div
+  x-data="{
+    id: '{{ id|default:''|escapejs }}',
+    title: '{{ title|default:''|escapejs }}',
+    size: '{{ size|default:'default'|escapejs }}',
+    open: false,
+    closeOnBackdrop: true,
+    sizes: { sm: 'max-w-sm', default: 'max-w-lg', lg: 'max-w-2xl' },
+    show() { this.open = true; document.body.style.overflow = 'hidden'; this.$nextTick(() => { const f = this.$refs['modal-content'].querySelector('button, input'); if (f) f.focus(); }); },
+    hide() { this.open = false; document.body.style.overflow = ''; },
+    toggle() { this.open ? this.hide() : this.show(); },
+    trapFocus(e) {
+      if (!this.$refs['modal-content']) return;
+      const focusables = Array.from(this.$refs['modal-content'].querySelectorAll('a[href], button, input, textarea, select, [tabindex]:not([tabindex=\'-1\'])')).filter(el => !el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'));
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }"
+  x-on:open-modal.window="if ($event.detail.id === id) show()"
+  x-on:close-modal.window="if ($event.detail.id === id) hide()"
+  x-on:keydown.escape.window="if (open) hide()"
+>
+  <div
+    x-show="open"
+    x-cloak
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    x-on:click="closeOnBackdrop && hide()"
+    class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+    aria-hidden="true"
+  ></div>
+
+  <div
+    x-show="open"
+    x-cloak
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+    x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+    x-bind:class="sizes[size]"
+    class="fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2"
+    x-ref="modal-content"
+    x-on:keydown.tab="trapFocus($event)"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div x-show="title || '{{ header_content|default:''|escapejs }}'" class="px-6 py-4 border-b border-outline shrink-0">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-on-surface" x-text="title"></h2>
+          {% if header_content %}{{ header_content|safe }}{% endif %}
+          <button
+            type="button"
+            x-on:click="hide()"
+            class="p-1 rounded-lg hover:bg-surface-container transition-colors text-outline hover:text-on-surface focus:outline-none focus:ring-2 focus:ring-primary ml-auto"
+            aria-label="Close"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 overflow-y-auto">
+        {% if body_template %}
+          {% include body_template %}
+        {% else %}
+          {{ body_content|safe }}
+        {% endif %}
+      </div>
+
+      {% if footer_content or footer_template %}
+      <div class="px-6 py-4 border-t border-outline bg-surface-container-low shrink-0">
+        {% if footer_template %}
+          {% include footer_template %}
+        {% else %}
+          {{ footer_content|safe }}
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endpartialdef %}
+
+{% partialdef toast %}
+<div x-data="$store.toast" class="fixed top-4 right-4 z-[100] space-y-3 w-full max-w-sm pointer-events-none" x-cloak>
+  <template x-for="msg in messages" :key="msg.id">
+    <div
+      x-transition:enter="transition ease-out duration-300"
+      x-transition:enter-start="opacity-0 translate-x-8"
+      x-transition:enter-end="opacity-100 translate-x-0"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100 translate-x-0"
+      x-transition:leave-end="opacity-0 translate-x-8"
+      class="flex items-start gap-3 p-4 rounded-lg border shadow-lg pointer-events-auto relative overflow-hidden"
+      :class="{
+        'bg-surface-bright border-outline text-on-surface': true
+      }"
+      x-init="setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons({ root: $el }); }, 0)"
+    >
+      <div class="flex-shrink-0" :class="{
+        'text-primary': msg.type === 'success',
+        'text-error': msg.type === 'error',
+        'text-secondary': msg.type === 'warning',
+        'text-tertiary': msg.type === 'info'
+      }">
+        <template x-if="msg.type === 'success'"><i data-lucide="check-circle" class="w-5 h-5"></i></template>
+        <template x-if="msg.type === 'error'"><i data-lucide="x-circle" class="w-5 h-5"></i></template>
+        <template x-if="msg.type === 'warning'"><i data-lucide="alert-triangle" class="w-5 h-5"></i></template>
+        <template x-if="msg.type === 'info'"><i data-lucide="info" class="w-5 h-5"></i></template>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium" x-text="msg.message"></p>
+      </div>
+      <button
+        type="button"
+        x-on:click="removeToast(msg.id)"
+        class="flex-shrink-0 p-1 rounded hover:bg-surface-container transition-colors text-outline hover:text-on-surface"
+      >
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <div
+        x-show="msg.duration > 0"
+        class="absolute bottom-0 left-0 h-1"
+        :class="{
+          'bg-primary': msg.type === 'success',
+          'bg-error': msg.type === 'error',
+          'bg-secondary': msg.type === 'warning',
+          'bg-tertiary': msg.type === 'info'
+        }"
+      >
+        <div
+          class="h-full bg-current opacity-30"
+          x-bind:style="`animation: shrink ${msg.duration}ms linear forwards;`"
+        ></div>
+      </div>
+    </div>
+  </template>
+</div>
+
+<style>
+  @keyframes shrink {
+    from { width: 100%; }
+    to { width: 0%; }
+  }
+</style>
+<script>
+  document.addEventListener('alpine:init', () => {
+    if (!Alpine.store('toast')) {
+      Alpine.store('toast', {
+        messages: [],
+        addToast(type, message, duration = 5000) {
+          const id = Date.now();
+          this.messages.push({ id, type, message, duration });
+          if (duration > 0) {
+            setTimeout(() => this.removeToast(id), duration);
+          }
+        },
+        removeToast(id) {
+          this.messages = this.messages.filter(m => m.id !== id);
+        }
+      });
+    }
+  });
+</script>
+{% endpartialdef %}{% comment %}
+  Task 6 Part 1 components:
+  - button, badge, card, table
+{% endcomment %}
+
+{% partialdef button %}
+{% if as_link %}
+<a href="{{ href|default:'#' }}"
+   {% if id %}id="{{ id }}"{% endif %}
+   class="inline-flex items-center justify-center rounded-lg font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none {% if size == 'sm' %}h-8 px-3 text-[10px]{% elif size == 'lg' %}h-12 px-8 text-sm{% elif size == 'icon' %}h-10 w-10{% else %}h-10 px-4 py-2 text-xs{% endif %} {% if variant == 'secondary' %}bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80{% elif variant == 'outline' %}border border-outline-variant text-on-surface hover:bg-surface-container-low{% elif variant == 'ghost' %}hover:bg-surface-container-low hover:text-on-surface text-on-surface-variant{% elif variant == 'destructive' %}bg-error text-on-error hover:bg-error/90{% elif variant == 'link' %}underline-offset-4 hover:underline text-primary{% else %}bg-primary text-on-primary hover:bg-primary/90{% endif %} {{ class }}"
+   {% if x_bind %}x-bind="{{ x_bind }}"{% endif %}
+   {% if disabled or is_loading %}disabled{% endif %}
+   {% if x_on %}x-on:click="{{ x_on }}"{% endif %}>
+  {% if is_loading %}
+    <i data-lucide="loader-2" class="w-4 h-4 shrink-0 animate-spin {% if text %}mr-2{% endif %}"></i>
+  {% elif icon %}
+    <i data-lucide="{{ icon }}" class="w-4 h-4 shrink-0 {% if text %}mr-2{% endif %}"></i>
+  {% endif %}
+  {% if text %}{{ text }}{% endif %}
+  {{ content|safe }}
+</a>
+{% else %}
+<button type="{{ type|default:'button' }}"
+   {% if id %}id="{{ id }}"{% endif %}
+   {% if disabled or is_loading %}disabled{% endif %}
+   class="inline-flex items-center justify-center rounded-lg font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none {% if size == 'sm' %}h-8 px-3 text-[10px]{% elif size == 'lg' %}h-12 px-8 text-sm{% elif size == 'icon' %}h-10 w-10{% else %}h-10 px-4 py-2 text-xs{% endif %} {% if variant == 'secondary' %}bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80{% elif variant == 'outline' %}border border-outline-variant text-on-surface hover:bg-surface-container-low{% elif variant == 'ghost' %}hover:bg-surface-container-low hover:text-on-surface text-on-surface-variant{% elif variant == 'destructive' %}bg-error text-on-error hover:bg-error/90{% elif variant == 'link' %}underline-offset-4 hover:underline text-primary{% else %}bg-primary text-on-primary hover:bg-primary/90{% endif %} {{ class }}"
+   {% if x_bind %}x-bind="{{ x_bind }}"{% endif %}
+   {% if x_on %}x-on:click="{{ x_on }}"{% endif %}>
+  {% if is_loading %}
+    <i data-lucide="loader-2" class="w-4 h-4 shrink-0 animate-spin {% if text %}mr-2{% endif %}"></i>
+  {% elif icon %}
+    <i data-lucide="{{ icon }}" class="w-4 h-4 shrink-0 {% if text %}mr-2{% endif %}"></i>
+  {% endif %}
+  {% if text %}{{ text }}{% endif %}
+  {{ content|safe }}
+</button>
+{% endif %}
+{% endpartialdef %}
+
+{% partialdef badge %}
+<span class="inline-flex items-center rounded-full font-bold uppercase tracking-wider {% if size == 'sm' %}px-2 py-0.5 text-[9px]{% else %}px-3 py-1 text-[10px]{% endif %} {% if variant == 'secondary' %}bg-secondary-container text-on-secondary-container{% elif variant == 'outline' %}border border-outline text-on-surface{% elif variant == 'destructive' %}bg-error-container text-on-error-container{% elif variant == 'success' %}bg-success-container text-on-success-container{% elif variant == 'warning' %}bg-warning-container text-on-warning-container{% else %}bg-primary-container text-on-primary-container{% endif %} {{ class }}">
+  {{ text }}
+</span>
+{% endpartialdef %}
+
+{% partialdef card %}
+<div class="rounded-xl overflow-hidden {{ class }} {% if variant == 'outline' %}border border-outline bg-transparent{% elif variant == 'elevated' %}shadow-md bg-surface-container-lowest border-none{% elif variant == 'filled' %}bg-surface-container border-none{% else %}shadow-sm border border-outline-variant/10 bg-surface-container-lowest{% endif %}">
+  {% if header_content or title or subtitle %}
+  <div class="flex flex-col space-y-1.5 p-6 border-b border-outline-variant/5 bg-surface-bright {{ header_class }}">
+    {% if title %}<h3 class="font-black text-lg text-on-surface tracking-tighter leading-none">{{ title }}</h3>{% endif %}
+    {% if subtitle %}<p class="text-sm text-on-surface-variant mt-1">{{ subtitle }}</p>{% endif %}
+    {{ header_content|safe }}
+  </div>
+  {% endif %}
+
+  {% if content %}
+  <div class="p-6 {{ content_class }}">
+    {{ content|safe }}
+  </div>
+  {% endif %}
+
+  {% if footer_content %}
+  <div class="flex items-center p-6 pt-0 border-t border-outline-variant/5 {{ footer_class }}">
+    {{ footer_content|safe }}
+  </div>
+  {% endif %}
+</div>
+{% endpartialdef %}
+
+{% partialdef table %}
+<div class="overflow-x-auto relative w-full rounded-xl border border-outline-variant/10 shadow-sm bg-surface-container-lowest {{ wrapper_class }}">
+  {% if title or table_actions %}
+  <div class="px-8 py-6 border-b border-outline-variant/5 flex justify-between items-center bg-surface-bright {{ header_class }}">
+    {% if title %}<h3 class="text-lg font-black text-on-surface tracking-tighter">{{ title }}</h3>{% endif %}
+    {% if table_actions %}<div>{{ table_actions|safe }}</div>{% endif %}
+  </div>
+  {% endif %}
+  <table class="w-full text-left border-collapse {{ class }}">
+    {% if headers %}
+    <thead class="bg-surface-container-low/30 border-b border-outline-variant/10">
+      <tr>
+        {% for header in headers %}
+        <th class="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant align-middle {{ header.class }}">
+          {{ header.text|default:header }}
+        </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    {% endif %}
+
+    <tbody class="divide-y divide-outline-variant/5">
+      {% if is_loading %}
+        {% for i in "123"|make_list %}
+        <tr class="animate-pulse">
+          {% for header in headers|default:"1234"|make_list %}
+          <td class="px-8 py-5">
+            <div class="h-4 bg-surface-container-highest rounded w-3/4"></div>
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      {% elif is_empty %}
+        <tr>
+          <td colspan="100%" class="px-8 py-10 text-center text-on-surface-variant">
+            <div class="flex flex-col items-center justify-center space-y-3">
+              <i data-lucide="inbox" class="w-10 h-10 text-outline-variant"></i>
+              <p class="text-sm font-medium">{{ empty_message|default:"No data available." }}</p>
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        {{ content|safe }}
+      {% endif %}
+    </tbody>
+  </table>
+
+  {% if pagination %}
+  <div class="px-8 py-4 border-t border-outline-variant/5 bg-surface-bright flex justify-between items-center">
+    {{ pagination|safe }}
+  </div>
+  {% endif %}
+</div>
+{% endpartialdef %}

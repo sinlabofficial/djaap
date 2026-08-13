@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+{% endblock %}
+
+{% block content %}
+<div class="{% if presentation_mode == 'mobile' %}min-h-screen bg-surface text-on-surface antialiased{% else %}fixed inset-0 flex bg-surface text-on-surface antialiased overflow-hidden z-40{% endif %}"
+    x-data="{
+        sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
+        mobileOpen: false,
+        init() {
+            this.$watch('sidebarCollapsed', value => localStorage.setItem('sidebar_collapsed', value));
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 1024) this.mobileOpen = false;
+            });
+        }
+    }">
+    {% include "layouts/_components.html" %}
+    {% include "layouts/_components.html#toast" %}
+    {% if presentation_mode == 'mobile' %}
+        {% include "layouts/_mobile_shell.html" %}
+    {% else %}
+        {% include "layouts/_sidebar.html" %}
+        <div
+            class="flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ease-in-out"
+            :class="sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'"
+        >
+            {% include "layouts/_topbar.html" %}
+    {% endif %}
+
+    <main class="{% if presentation_mode == 'mobile' %}min-h-[calc(100vh-4rem)] overflow-y-auto px-4 pb-24 pt-5{% else %}flex-1 overflow-y-auto p-4 lg:p-6 relative{% endif %}">
+        {% block page_content %}{% endblock %}
+    </main>
+
+    {% if presentation_mode != 'mobile' %}</div>{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+
+    // Realtime is an enhancement: notifications only invalidate UI; HTMX/HTTP
+    // remains the authoritative state source and polling works without Channels.
+    (() => {
+        const endpoint = "{% url 'realtime-events' %}";
+        let cursor = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const notify = (event) => {
+            cursor = event.published_at || cursor;
+            document.body.dispatchEvent(new CustomEvent("realtime:changed", {detail: event}));
+            if (window.htmx) {
+                document.querySelectorAll("[data-realtime-refresh]").forEach((target) => {
+                    window.htmx.ajax("GET", target.dataset.realtimeRefresh, {target, swap: "innerHTML"});
+                });
+            }
+        };
+        const poll = () => window["fetch"](`${endpoint}?since=${encodeURIComponent(cursor)}`, {credentials: "same-origin"})
+            .then((response) => response.ok ? response.json() : {events: []})
+            .then((data) => (data.events || []).forEach(notify))
+            .catch(() => undefined);
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+        if (window.WebSocket) {
+            try {
+                const socket = new WebSocket(`${protocol}://${window.location.host}/ws/realtime/`);
+                socket.onmessage = (message) => notify(JSON.parse(message.data));
+            } catch (_) { /* HTTP polling remains active. */ }
+        }
+        poll();
+        window.setInterval(poll, 15000);
+    })();
+</script>
+{% endblock %}

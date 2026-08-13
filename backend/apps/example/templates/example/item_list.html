@@ -1,0 +1,26 @@
+{% extends "layouts/dashboard_base.html" %}
+
+{% block page_content %}
+<div class="space-y-6">
+    <header class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Example Domain App</p>
+            <h1 class="mt-2 text-3xl font-black text-on-surface">Items</h1>
+            <p class="mt-2 text-sm text-on-surface-variant">A reference CRUD workflow for a single-organization Domain App.</p>
+        </div>
+        {% if can_manage %}<a href="{% url 'example:create' %}" class="rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-primary">Create item</a>{% endif %}
+    </header>
+    <form method="get" class="flex gap-2">
+        <input name="search" value="{{ search }}" placeholder="Search items" class="min-w-0 flex-1 rounded-lg border border-outline bg-surface-container-lowest px-3 py-2 text-sm">
+        <button type="submit" class="rounded-lg border border-outline px-4 py-2 text-xs font-bold uppercase tracking-widest">Search</button>
+    </form>
+    <section class="overflow-hidden rounded-xl border border-outline-variant/10 bg-surface-container-lowest shadow-sm">
+        <div class="divide-y divide-outline-variant/10">
+            {% for item in items %}
+            <a href="{% url 'example:detail' item.id %}" class="block px-6 py-4 transition-colors hover:bg-surface-container-low"><div class="flex items-center justify-between gap-4"><span class="font-semibold text-on-surface">{{ item.name }}</span><span class="text-xs text-on-surface-variant">{{ item.created|date:"Y-m-d H:i" }}</span></div><p class="mt-1 truncate text-sm text-on-surface-variant">{{ item.description|default:"No description" }}</p></a>
+            {% empty %}<p class="px-6 py-12 text-center text-sm text-on-surface-variant">No items available.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

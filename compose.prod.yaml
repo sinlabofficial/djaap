@@ -1,0 +1,26 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+      target: runtime
+      args:
+        UV_EXTRAS: "${UV_EXTRAS:-}"
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "${SECRET_KEY:?Set SECRET_KEY in .env}"
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
+      DATABASE_CONN_MAX_AGE: "60"
+      DATABASE_SSL_REQUIRE: "${DATABASE_SSL_REQUIRE:-True}"
+      DJANGO_ENV: "production"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS:?Set ALLOWED_HOSTS in .env}"
+      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-}"
+      CSRF_TRUSTED_ORIGINS: "${CSRF_TRUSTED_ORIGINS:-}"
+      TASKS_BACKEND: "${TASKS_BACKEND:?Set TASKS_BACKEND to a production worker backend}"
+      TASKS_WEBHOOK_BACKEND: "${TASKS_WEBHOOK_BACKEND:-}"
+      PERIODIC_SCHEDULER_ENABLED: "${PERIODIC_SCHEDULER_ENABLED:-False}"
+      REALTIME_ENABLED: "${REALTIME_ENABLED:-False}"
+      CHANNEL_LAYER_BACKEND: "${CHANNEL_LAYER_BACKEND:-channels.layers.InMemoryChannelLayer}"
+      CHANNEL_LAYER_REDIS_URL: "${CHANNEL_LAYER_REDIS_URL:-}"

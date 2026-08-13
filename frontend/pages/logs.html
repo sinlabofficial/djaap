@@ -1,0 +1,209 @@
+{% extends "layouts/dashboard_base.html" %}
+
+{% block page_content %}
+<div class="space-y-6">
+    <header>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Administration</p>
+        <h1 class="mt-2 text-3xl font-black text-on-surface">Logs</h1>
+        <p class="mt-2 text-sm text-on-surface-variant">Review access activity and operational task history.</p>
+    </header>
+
+    <nav class="flex flex-wrap gap-2 border-b border-outline-variant/30 pb-3" aria-label="Log sections">
+        {% for key, label in log_tabs %}
+        <a href="{% url 'dashboard:logs' %}?tab={{ key }}"
+           class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {% if active_tab == key %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">
+            {% if key == "access" %}<i data-lucide="shield-check" class="h-4 w-4"></i>{% endif %}
+            {% if key == "background_jobs" %}<i data-lucide="list-checks" class="h-4 w-4"></i>{% endif %}
+            {% if key == "webhooks" %}<i data-lucide="webhook" class="h-4 w-4"></i>{% endif %}
+            {% if key == "realtime" %}<i data-lucide="radio" class="h-4 w-4"></i>{% endif %}
+            {{ label }}
+        </a>
+        {% endfor %}
+    </nav>
+
+    {% if active_tab == "background_jobs" %}
+    <form method="get" class="grid gap-4 rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-sm md:grid-cols-3">
+        <input type="hidden" name="tab" value="background_jobs">
+        <div>
+            <label for="id_runtime_status" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Status</label>
+            {{ runtime_log_filter_form.status }}
+        </div>
+        <div>
+            <label for="id_event_type" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Event type</label>
+            {{ runtime_log_filter_form.event_type }}
+        </div>
+        <div>
+            <label for="id_severity" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Severity</label>
+            {{ runtime_log_filter_form.severity }}
+        </div>
+        <div>
+            <label for="id_correlation_id" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Correlation ID</label>
+            {{ runtime_log_filter_form.correlation_id }}
+        </div>
+        <div>
+            <label for="id_runtime_date_from" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">From</label>
+            {{ runtime_log_filter_form.date_from }}
+        </div>
+        <div>
+            <label for="id_runtime_date_to" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">To</label>
+            {{ runtime_log_filter_form.date_to }}
+        </div>
+        {% if runtime_log_filter_form.non_field_errors %}
+        <div class="md:col-span-3 rounded-lg bg-error-container px-4 py-3 text-sm text-on-error-container" role="alert">
+            {{ runtime_log_filter_form.non_field_errors }}
+        </div>
+        {% endif %}
+        <div class="md:col-span-3 flex justify-end">
+            <button type="submit" class="rounded-lg bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-on-primary transition-colors hover:bg-primary/90">Apply filters</button>
+        </div>
+    </form>
+
+    <section class="overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container-lowest shadow-sm">
+        {% if runtime_page_obj %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-outline-variant/20 text-left text-sm">
+                <thead class="bg-surface-container-low text-xs uppercase tracking-widest text-on-surface-variant">
+                    <tr>
+                        <th class="px-5 py-3 font-bold">Task</th>
+                        <th class="px-5 py-3 font-bold">Event</th>
+                        <th class="px-5 py-3 font-bold">Status</th>
+                        <th class="px-5 py-3 font-bold">Attempt</th>
+                        <th class="px-5 py-3 font-bold">Duration</th>
+                        <th class="px-5 py-3 font-bold">Correlation</th>
+                        <th class="px-5 py-3 font-bold">Time</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                    {% for entry in runtime_page_obj %}
+                    <tr>
+                        <td class="px-5 py-4">
+                            <div class="font-semibold text-on-surface">{{ entry.task_name }}</div>
+                            <div class="mt-1 text-xs text-on-surface-variant">{{ entry.task_result_id }}</div>
+                        </td>
+                        <td class="px-5 py-4 text-on-surface-variant">{{ entry.event_type }}</td>
+                        <td class="px-5 py-4"><span class="rounded-full bg-primary-container px-2.5 py-1 text-xs font-bold text-on-primary-container">{{ entry.get_status_display }}</span></td>
+                        <td class="px-5 py-4 text-on-surface-variant">{{ entry.attempt }}</td>
+                        <td class="px-5 py-4 text-on-surface-variant">{% if entry.duration_ms != None %}{{ entry.duration_ms }} ms{% else %}—{% endif %}</td>
+                        <td class="px-5 py-4 text-on-surface-variant">{{ entry.correlation_id|default:"—" }}</td>
+                        <td class="whitespace-nowrap px-5 py-4 text-on-surface-variant">{{ entry.created|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="px-6 py-14 text-center text-sm text-on-surface-variant">No background jobs match the selected filters.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if runtime_page_obj.has_other_pages %}
+        <nav class="flex items-center justify-between border-t border-outline-variant/20 px-5 py-4 text-sm" aria-label="Background job pages">
+            {% if runtime_page_obj.has_previous %}<a class="font-semibold text-primary hover:underline" href="?{{ runtime_querystring }}&page={{ runtime_page_obj.previous_page_number }}">Previous</a>{% else %}<span class="text-on-surface-variant/50">Previous</span>{% endif %}
+            <span class="text-on-surface-variant">Page {{ runtime_page_obj.number }} of {{ runtime_page_obj.paginator.num_pages }}</span>
+            {% if runtime_page_obj.has_next %}<a class="font-semibold text-primary hover:underline" href="?{{ runtime_querystring }}&page={{ runtime_page_obj.next_page_number }}">Next</a>{% else %}<span class="text-on-surface-variant/50">Next</span>{% endif %}
+        </nav>
+        {% endif %}
+    </section>
+    {% endif %}
+    {% elif active_tab == "webhooks" %}
+    <form method="get" class="grid gap-4 rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-sm md:grid-cols-3">
+        <input type="hidden" name="tab" value="webhooks">
+        <div><label for="id_status" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Status</label>{{ webhook_log_filter_form.status }}</div>
+        <div><label for="id_provider" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Provider</label>{{ webhook_log_filter_form.provider }}</div>
+        <div><label for="id_external_event_id" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">External event ID</label>{{ webhook_log_filter_form.external_event_id }}</div>
+        <div><label for="id_correlation_id" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Correlation ID</label>{{ webhook_log_filter_form.correlation_id }}</div>
+        <div><label for="id_severity" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Severity</label>{{ webhook_log_filter_form.severity }}</div>
+        <div><label for="id_date_from" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">From</label>{{ webhook_log_filter_form.date_from }}</div>
+        <div><label for="id_date_to" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">To</label>{{ webhook_log_filter_form.date_to }}</div>
+        <div class="md:col-span-3 flex justify-end"><button type="submit" class="rounded-lg bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-on-primary">Apply filters</button></div>
+    </form>
+    <section class="overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container-lowest shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-outline-variant/20 text-left text-sm">
+                <thead class="bg-surface-container-low text-xs uppercase tracking-widest text-on-surface-variant"><tr><th class="px-5 py-3 font-bold">Provider</th><th class="px-5 py-3 font-bold">Event</th><th class="px-5 py-3 font-bold">Status</th><th class="px-5 py-3 font-bold">Correlation</th><th class="px-5 py-3 font-bold">Time</th><th class="px-5 py-3 font-bold">Action</th></tr></thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                {% for entry in webhook_page_obj %}
+                    <tr><td class="px-5 py-4 font-semibold text-on-surface">{{ entry.safe_metadata.provider|default:"—" }}<div class="mt-1 text-xs text-on-surface-variant">{{ entry.safe_metadata.external_event_id|default:"—" }}</div></td><td class="px-5 py-4 text-on-surface-variant">{{ entry.event_type }}</td><td class="px-5 py-4"><span class="rounded-full bg-primary-container px-2.5 py-1 text-xs font-bold text-on-primary-container">{{ entry.event_type|cut:"webhook."|title }}</span></td><td class="px-5 py-4 text-on-surface-variant">{{ entry.correlation_id|default:"—" }}</td><td class="whitespace-nowrap px-5 py-4 text-on-surface-variant">{{ entry.created|date:"Y-m-d H:i" }}</td><td class="px-5 py-4">{% if can_replay and entry.event_type == "webhook.failed" and entry.safe_metadata.event_id %}<form method="post" action="{% url 'dashboard:webhook_replay' entry.safe_metadata.event_id %}">{% csrf_token %}<button type="submit" class="text-xs font-bold uppercase tracking-widest text-primary hover:underline">Replay</button></form>{% else %}—{% endif %}</td></tr>
+                {% empty %}<tr><td colspan="6" class="px-6 py-14 text-center text-sm text-on-surface-variant">No webhook logs match the selected filters.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if webhook_page_obj.has_other_pages %}<nav class="flex items-center justify-between border-t border-outline-variant/20 px-5 py-4 text-sm" aria-label="Webhook pages">{% if webhook_page_obj.has_previous %}<a class="font-semibold text-primary" href="?{{ webhook_querystring }}&page={{ webhook_page_obj.previous_page_number }}">Previous</a>{% else %}<span>Previous</span>{% endif %}<span>Page {{ webhook_page_obj.number }} of {{ webhook_page_obj.paginator.num_pages }}</span>{% if webhook_page_obj.has_next %}<a class="font-semibold text-primary" href="?{{ webhook_querystring }}&page={{ webhook_page_obj.next_page_number }}">Next</a>{% else %}<span>Next</span>{% endif %}</nav>{% endif %}
+    </section>
+    {% elif active_tab == "realtime" %}
+    <form id="realtime-log-filter-form" method="get" class="grid gap-4 rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-sm md:grid-cols-3">
+        <input type="hidden" name="tab" value="realtime">
+        <input type="hidden" name="page" value="{{ realtime_page_obj.number }}">
+        <div><label for="id_category" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Category</label>{{ realtime_log_filter_form.category }}</div>
+        <div><label for="id_realtime_event_type" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Event type</label>{{ realtime_log_filter_form.event_type }}</div>
+        <div><label for="id_realtime_status" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Status</label>{{ realtime_log_filter_form.status }}</div>
+        <div><label for="id_realtime_severity" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Severity</label>{{ realtime_log_filter_form.severity }}</div>
+        <div><label for="id_realtime_provider" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Provider</label>{{ realtime_log_filter_form.provider }}</div>
+        <div><label for="id_realtime_external_event_id" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">External event ID</label>{{ realtime_log_filter_form.external_event_id }}</div>
+        <div><label for="id_realtime_correlation_id" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Correlation ID</label>{{ realtime_log_filter_form.correlation_id }}</div>
+        <div><label for="id_realtime_date_from" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">From</label>{{ realtime_log_filter_form.date_from }}</div>
+        <div><label for="id_realtime_date_to" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">To</label>{{ realtime_log_filter_form.date_to }}</div>
+        <div class="md:col-span-3 flex justify-end gap-2"><button type="submit" class="rounded-lg bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-on-primary">Apply filters</button><button type="button" hx-get="{% url 'dashboard:logs' %}" hx-include="#realtime-log-filter-form" hx-target="#realtime-log-region" hx-select="#realtime-log-region" hx-swap="outerHTML" class="rounded-lg border border-outline px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-on-surface">Refresh</button></div>
+    </form>
+    <section id="realtime-log-region" data-realtime-refresh="{% url 'dashboard:logs' %}?tab=realtime" class="overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container-lowest shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-outline-variant/20 text-left text-sm">
+                <thead class="bg-surface-container-low text-xs uppercase tracking-widest text-on-surface-variant"><tr><th class="px-5 py-3 font-bold">Category</th><th class="px-5 py-3 font-bold">Event</th><th class="px-5 py-3 font-bold">Status</th><th class="px-5 py-3 font-bold">Severity</th><th class="px-5 py-3 font-bold">Correlation</th><th class="px-5 py-3 font-bold">Time</th></tr></thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                {% for entry in realtime_page_obj %}
+                    <tr><td class="px-5 py-4 font-semibold text-on-surface">{{ entry.event_type|cut:"."|title }}</td><td class="px-5 py-4 text-on-surface-variant">{{ entry.event_type }}</td><td class="px-5 py-4">{{ entry.get_status_display }}</td><td class="px-5 py-4 text-on-surface-variant">{{ entry.severity|title }}</td><td class="px-5 py-4 text-on-surface-variant">{{ entry.correlation_id|default:"—" }}</td><td class="whitespace-nowrap px-5 py-4 text-on-surface-variant">{{ entry.created|date:"Y-m-d H:i" }}</td></tr>
+                {% empty %}<tr><td colspan="6" class="px-6 py-14 text-center text-sm text-on-surface-variant">No realtime runtime logs match the selected filters.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if realtime_page_obj.has_other_pages %}<nav class="flex items-center justify-between border-t border-outline-variant/20 px-5 py-4 text-sm" aria-label="Realtime log pages">{% if realtime_page_obj.has_previous %}<a class="font-semibold text-primary" href="?{{ realtime_querystring }}&page={{ realtime_page_obj.previous_page_number }}">Previous</a>{% else %}<span>Previous</span>{% endif %}<span>Page {{ realtime_page_obj.number }} of {{ realtime_page_obj.paginator.num_pages }}</span>{% if realtime_page_obj.has_next %}<a class="font-semibold text-primary" href="?{{ realtime_querystring }}&page={{ realtime_page_obj.next_page_number }}">Next</a>{% else %}<span>Next</span>{% endif %}</nav>{% endif %}
+    </section>
+    {% else %}
+    <form method="get" class="grid gap-4 rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-sm md:grid-cols-4">
+        <input type="hidden" name="tab" value="{{ active_tab }}">
+        <div>
+            <label for="id_status" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Status</label>
+            {{ log_filter_form.status }}
+        </div>
+        <div>
+            <label for="id_type" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Type</label>
+            {{ log_filter_form.type }}
+        </div>
+        <div>
+            <label for="id_date_from" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">From</label>
+            {{ log_filter_form.date_from }}
+        </div>
+        <div>
+            <label for="id_date_to" class="mb-1 block text-xs font-bold uppercase tracking-widest text-on-surface-variant">To</label>
+            {{ log_filter_form.date_to }}
+        </div>
+        {% if log_filter_form.non_field_errors or log_filter_form.errors.date_from or log_filter_form.errors.date_to %}
+        <div class="md:col-span-4 rounded-lg bg-error-container px-4 py-3 text-sm text-on-error-container" role="alert">
+            {{ log_filter_form.non_field_errors }}
+            {{ log_filter_form.errors.date_from }}
+            {{ log_filter_form.errors.date_to }}
+        </div>
+        {% endif %}
+        <div class="md:col-span-4 flex justify-end">
+            <button type="submit" class="rounded-lg bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-on-primary transition-colors hover:bg-primary/90">Apply filters</button>
+        </div>
+    </form>
+
+    <section class="overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container-lowest shadow-sm">
+        {% if log_entries %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-outline-variant/20 text-left text-sm">
+                <thead class="bg-surface-container-low text-xs uppercase tracking-widest text-on-surface-variant">
+                    <tr><th class="px-5 py-3 font-bold">Activity</th><th class="px-5 py-3 font-bold">Type</th><th class="px-5 py-3 font-bold">Status</th><th class="px-5 py-3 font-bold">Actor</th><th class="px-5 py-3 font-bold">Time</th></tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                    {% for entry in log_entries %}
+                    <tr><td class="px-5 py-4 font-semibold text-on-surface">{{ entry.object_repr }}</td><td class="px-5 py-4 text-on-surface-variant">{{ entry.action_label }} · {{ entry.model_label }}</td><td class="px-5 py-4"><span class="rounded-full bg-primary-container px-2.5 py-1 text-xs font-bold text-on-primary-container">{{ entry.log_status|title }}</span></td><td class="px-5 py-4 text-on-surface-variant">{{ entry.actor|default:entry.actor_email|default:"System" }}</td><td class="whitespace-nowrap px-5 py-4 text-on-surface-variant">{{ entry.timestamp|date:"Y-m-d H:i" }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="px-6 py-14 text-center"><i data-lucide="scroll-text" class="mx-auto h-10 w-10 text-on-surface-variant"></i><h2 class="mt-4 text-base font-bold text-on-surface">No logs match the selected filters.</h2><p class="mt-2 text-sm text-on-surface-variant">Activity recorded for this section will appear here.</p></div>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

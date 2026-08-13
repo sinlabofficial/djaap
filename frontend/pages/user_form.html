@@ -1,0 +1,80 @@
+<div class="rounded-xl border border-outline-variant/10 bg-surface-container-lowest shadow-sm">
+    <div class="flex items-center justify-between border-b border-outline-variant/10 bg-surface-bright px-6 py-4">
+        <div>
+            <h2 class="text-sm font-bold text-on-surface">
+                {% if mode == "edit" %}Edit User{% else %}Create User{% endif %}
+            </h2>
+            <p class="mt-1 text-xs text-on-surface-variant">
+                {% if mode == "edit" %}Update account identity and access flags.{% else %}Add a new account to the application.{% endif %}
+            </p>
+        </div>
+        <button
+            type="button"
+            hx-get="{% url 'dashboard:user_panel_empty' %}"
+            hx-target="#user-panel"
+            hx-swap="innerHTML"
+            class="rounded-lg p-2 text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
+            aria-label="Close form"
+        >
+            <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+    </div>
+
+    {% if saved %}
+    <div class="mx-6 mt-4 rounded-lg bg-primary-container px-4 py-3 text-sm font-medium text-on-primary-container">
+        User saved.
+    </div>
+    {% endif %}
+
+    <form
+        method="post"
+        class="space-y-4 p-6"
+        hx-post="{% if mode == 'edit' %}{% url 'dashboard:user_edit' user_obj.id %}{% else %}{% url 'dashboard:user_create' %}{% endif %}"
+        hx-target="#user-panel"
+        hx-swap="innerHTML"
+    >
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="rounded-lg bg-error-container p-3 text-sm text-on-error-container">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {% include "pages/user_form_field.html" with field=form.email %}
+            {% include "pages/user_form_field.html" with field=form.phone %}
+            {% include "pages/user_form_field.html" with field=form.employee_id %}
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {% include "pages/user_form_field.html" with field=form.password %}
+            {% include "pages/user_form_field.html" with field=form.password_confirm %}
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row">
+            <label class="flex items-center gap-2 text-sm font-medium text-on-surface">
+                {{ form.is_staff }}
+                Staff Member
+            </label>
+            <label class="flex items-center gap-2 text-sm font-medium text-on-surface">
+                {{ form.is_active }}
+                Active Account
+            </label>
+        </div>
+
+        <div class="flex justify-end gap-3 border-t border-outline-variant/10 pt-4">
+            <button
+                type="button"
+                hx-get="{% url 'dashboard:user_panel_empty' %}"
+                hx-target="#user-panel"
+                hx-swap="innerHTML"
+                class="rounded-lg border border-outline px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors hover:bg-surface-container-low"
+            >
+                Cancel
+            </button>
+            <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-primary transition-colors hover:bg-primary/90">
+                {% if mode == "edit" %}Save Changes{% else %}Create User{% endif %}
+            </button>
+        </div>
+    </form>
+</div>

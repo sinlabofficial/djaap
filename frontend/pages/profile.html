@@ -1,0 +1,54 @@
+{% extends "layouts/dashboard_base.html" %}
+
+{% block page_content %}
+<div class="mx-auto max-w-3xl space-y-6">
+    <header>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Account</p>
+        <h1 class="mt-2 text-3xl font-black text-on-surface">My Profile</h1>
+        <p class="mt-2 text-sm text-on-surface-variant">Update your profile details and password.</p>
+    </header>
+
+    {% if saved %}
+    <div class="rounded-lg bg-primary-container px-4 py-3 text-sm font-medium text-on-primary-container" role="status">
+        Profile updated successfully.
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6 rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-sm">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="rounded-lg bg-error-container px-4 py-3 text-sm text-on-error-container" role="alert">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <section class="space-y-4">
+            <div>
+                <h2 class="text-base font-bold text-on-surface">Profile details</h2>
+                <p class="mt-1 text-sm text-on-surface-variant">Your login email remains {{ request.user.email }}.</p>
+            </div>
+            {% include "pages/user_form_field.html" with field=form.profile_name %}
+            {% include "pages/user_form_field.html" with field=form.profile_photo %}
+            {% include "pages/user_form_field.html" with field=form.presentation_mode %}
+        </section>
+
+        <section class="space-y-4 border-t border-outline-variant/20 pt-6">
+            <div>
+                <h2 class="text-base font-bold text-on-surface">Change password</h2>
+                <p class="mt-1 text-sm text-on-surface-variant">Leave these fields empty to keep your current password.</p>
+            </div>
+            {% include "pages/user_form_field.html" with field=form.current_password %}
+            <div class="grid gap-4 md:grid-cols-2">
+                {% include "pages/user_form_field.html" with field=form.new_password %}
+                {% include "pages/user_form_field.html" with field=form.new_password_confirm %}
+            </div>
+        </section>
+
+        <div class="flex justify-end border-t border-outline-variant/20 pt-6">
+            <button type="submit" class="rounded-lg bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-on-primary transition-colors hover:bg-primary/90">
+                Save profile
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

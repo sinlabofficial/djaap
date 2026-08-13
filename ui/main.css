@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./base.css";
+
+@theme {
+  --font-sans: var(--ui-font-sans);
+  --font-mono: var(--ui-font-mono);
+
+  --color-primary: var(--ui-primary);
+  --color-on-primary: var(--ui-on-primary);
+  --color-primary-container: var(--ui-primary-container);
+  --color-on-primary-container: var(--ui-on-primary-container);
+  --color-inverse-primary: var(--ui-inverse-primary);
+
+  --color-secondary: var(--ui-secondary);
+  --color-on-secondary: var(--ui-on-secondary);
+  --color-secondary-container: var(--ui-secondary-container);
+  --color-on-secondary-container: var(--ui-on-secondary-container);
+
+  --color-tertiary: var(--ui-tertiary);
+  --color-on-tertiary: var(--ui-on-tertiary);
+  --color-tertiary-container: var(--ui-tertiary-container);
+  --color-on-tertiary-container: var(--ui-on-tertiary-container);
+
+  --color-error: var(--ui-error);
+  --color-on-error: var(--ui-on-error);
+  --color-error-container: var(--ui-error-container);
+  --color-on-error-container: var(--ui-on-error-container);
+  --color-success: var(--ui-success);
+  --color-on-success: var(--ui-on-success);
+  --color-success-container: var(--ui-success-container);
+  --color-on-success-container: var(--ui-on-success-container);
+  --color-warning: var(--ui-warning);
+  --color-on-warning: var(--ui-on-warning);
+  --color-warning-container: var(--ui-warning-container);
+  --color-on-warning-container: var(--ui-on-warning-container);
+
+  --color-background: var(--ui-background);
+  --color-on-background: var(--ui-on-background);
+  --color-surface: var(--ui-surface);
+  --color-surface-dim: var(--ui-surface-dim);
+  --color-surface-bright: var(--ui-surface-bright);
+  --color-on-surface: var(--ui-on-surface);
+  --color-on-surface-variant: var(--ui-on-surface-variant);
+  --color-inverse-surface: var(--ui-inverse-surface);
+  --color-inverse-on-surface: var(--ui-inverse-on-surface);
+  --color-surface-variant: var(--ui-surface-variant);
+  --color-surface-tint: var(--ui-surface-tint);
+  --color-surface-container: var(--ui-surface-container);
+  --color-surface-container-low: var(--ui-surface-container-low);
+  --color-surface-container-lowest: var(--ui-surface-container-lowest);
+  --color-surface-container-high: var(--ui-surface-container-high);
+  --color-surface-container-highest: var(--ui-surface-container-highest);
+
+  --color-outline: var(--ui-outline);
+  --color-outline-variant: var(--ui-outline-variant);
+
+  --radius-sm: var(--ui-radius-sm);
+  --radius-md: var(--ui-radius);
+  --radius-lg: var(--ui-radius-lg);
+  --radius-xl: var(--ui-radius-xl);
+}

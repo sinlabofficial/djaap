@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: django_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+      target: runtime
+      args:
+        UV_EXTRAS: "${UV_EXTRAS:-}"
+    command: python backend/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app/backend
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "dev-secret-key"
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/django_db"
+      DATABASE_CONN_MAX_AGE: "60"
+      DJANGO_ENV: "development"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  tailwind:
+    image: node:22-alpine
+    working_dir: /app
+    command: npm run tailwind-watch
+    volumes:
+      - ./ui:/app/ui
+      - ./dist:/app/dist
+      - ./package.json:/app/package.json
+      - ./node_modules:/app/node_modules
+
+volumes:
+  postgres_data:

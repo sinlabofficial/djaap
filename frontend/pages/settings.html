@@ -1,0 +1,79 @@
+{% extends "layouts/dashboard_base.html" %}
+
+{% block page_content %}
+<div class="space-y-6">
+    <header>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Administration</p>
+        <h1 class="mt-2 text-3xl font-black text-on-surface">Settings</h1>
+        <p class="mt-2 text-sm text-on-surface-variant">Manage organization identity, users, roles, and authentication.</p>
+    </header>
+
+    <nav class="flex flex-wrap gap-2 border-b border-outline-variant/30 pb-3" aria-label="Settings sections">
+        {% for key,label,icon in settings_tabs %}
+        <a href="{% url 'dashboard:settings' %}?tab={{ key }}"
+           class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {% if active_tab == key %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">
+            <i data-lucide="{{ icon }}" class="h-4 w-4"></i>{{ label }}
+        </a>
+        {% endfor %}
+    </nav>
+
+    {% if saved %}
+    <div class="rounded-lg bg-primary-container px-4 py-3 text-sm font-medium text-on-primary-container" role="status">
+        Organization settings saved successfully.
+    </div>
+    {% endif %}
+
+    {% if active_tab == "basic" %}
+    <form method="post" enctype="multipart/form-data" class="space-y-6 rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-sm">
+        {% csrf_token %}
+        <input type="hidden" name="tab" value="basic">
+        {% if form.non_field_errors %}<div class="rounded-lg bg-error-container px-4 py-3 text-sm text-on-error-container" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="grid gap-6 lg:grid-cols-2">
+            <div class="space-y-4">
+                <div>
+                    <h2 class="text-base font-bold text-on-surface">Basic information</h2>
+                    <p class="mt-1 text-sm text-on-surface-variant">This identity is used in the dashboard and generated reports.</p>
+                </div>
+                {% include "pages/user_form_field.html" with field=form.organization_name %}
+                {% include "pages/user_form_field.html" with field=form.logo %}
+                {% include "pages/user_form_field.html" with field=form.description %}
+            </div>
+            <div class="space-y-4">
+                {% include "pages/user_form_field.html" with field=form.address %}
+                {% include "pages/user_form_field.html" with field=form.phone %}
+                {% include "pages/user_form_field.html" with field=form.email %}
+                {% include "pages/user_form_field.html" with field=form.presentation_mode %}
+                {% include "pages/user_form_field.html" with field=form.mobile_presentation_enabled %}
+                {% if organization.logo %}
+                <div class="flex items-start gap-3 rounded-lg border border-outline-variant/30 bg-surface-container-low p-3">
+                    <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-container-lowest ring-1 ring-outline-variant">
+                        <img src="{{ organization.logo.url }}" alt="{{ organization.organization_name }} logo" class="max-h-full max-w-full object-contain">
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-on-surface">Current logo</p>
+                        <p class="mt-1 text-xs text-on-surface-variant">The preview is constrained to a fixed frame.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex justify-end border-t border-outline-variant/20 pt-6">
+            <button type="submit" class="rounded-lg bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-on-primary transition-colors hover:bg-primary/90">Save settings</button>
+        </div>
+    </form>
+    {% elif active_tab == "users" %}
+    {% include "pages/users_content.html" %}
+    {% elif active_tab == "roles" %}
+    {% include "pages/roles_content.html" %}
+    {% else %}
+    <section class="rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-sm">
+        <div class="flex items-start justify-between gap-4"><div><h2 class="text-base font-bold text-on-surface">Authentication</h2><p class="mt-1 text-sm text-on-surface-variant">Current authentication behavior for this installation.</p></div><i data-lucide="key-round" class="h-6 w-6 text-primary"></i></div>
+        <dl class="mt-6 grid gap-4 md:grid-cols-3">
+            <div class="rounded-lg bg-surface-container-low p-4"><dt class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Dashboard</dt><dd class="mt-2 text-sm font-semibold text-on-surface">Session authentication</dd></div>
+            <div class="rounded-lg bg-surface-container-low p-4"><dt class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Login identifiers</dt><dd class="mt-2 text-sm font-semibold text-on-surface">Email, phone, employee ID</dd></div>
+            <div class="rounded-lg bg-surface-container-low p-4"><dt class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">External clients</dt><dd class="mt-2 text-sm font-semibold text-on-surface">JWT API authentication</dd></div>
+        </dl>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
