@@ -49,9 +49,9 @@ deps-down:
 run:
     {{docker_compose}} up --build
 
-# Start development server without Docker
-run-local:
-    {{manage}} runserver
+# Start development server without Docker. The recipe loads .env via just.
+run-local port="8000":
+    {{manage}} runserver 0.0.0.0:{{port}}
 
 # Open Django shell
 shell:
