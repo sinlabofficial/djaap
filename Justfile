@@ -24,6 +24,7 @@ init:
         cp .env.example .env
         echo "Created .env from .env.example. Review local settings before running production commands."
     fi
+    mkdir -p dist/bundles
     just install
     just deps-up
     just migrate
@@ -37,7 +38,7 @@ install:
 
 # Start only local infrastructure needed by a host-run Django process.
 deps-up:
-    {{docker_compose}} up -d db
+    {{docker_compose}} up -d --wait db
 
 # Stop local infrastructure without deleting persisted database data.
 deps-down:

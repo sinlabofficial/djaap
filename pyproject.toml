@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "djantra"
+name = "djaapp"
 version = "0.1.0"
 description = "Django full-stack webapp starterkit"
 readme = "README.md"
