@@ -3,6 +3,8 @@
 @import "./tokens.css";
 @import "./base.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: var(--ui-font-sans);
   --font-mono: var(--ui-font-mono);

@@ -85,3 +85,42 @@ def test_tailwind_build_produces_a_deployable_dashboard_asset():
     assert asset.is_file()
     assert asset.stat().st_size > 0
     assert ".bg-surface" in asset.read_text()
+
+
+@pytest.mark.django_db
+def test_dashboard_renders_theme_toggle_controls_and_no_fouc_script(
+    client, dashboard_admin
+):
+    client.force_login(dashboard_admin)
+
+    response = client.get(reverse("dashboard:home"))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert '<meta name="color-scheme" content="light dark">' in content
+    assert "localStorage.getItem('theme')" in content
+    assert 'data-testid="theme-toggle-button"' in content
+    assert 'data-testid="sidebar-theme-toggle-button"' in content
+    assert "toggleTheme()" in content
+    assert "darkMode" in content
+
+
+@pytest.mark.django_db
+def test_mobile_presentation_shell_renders_theme_toggle(
+    client, dashboard_admin
+):
+    from apps.core.models import OrganizationSettings
+    org, _ = OrganizationSettings.objects.get_or_create(key="default")
+    org.mobile_presentation_enabled = True
+    org.save()
+
+    dashboard_admin.presentation_mode = "mobile"
+    dashboard_admin.save()
+    client.force_login(dashboard_admin)
+
+    response = client.get(reverse("dashboard:home"))
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert 'data-testid="mobile-theme-toggle-button"' in content
+

@@ -73,3 +73,17 @@ def test_mobile_interaction_patterns_have_responsive_contracts():
     assert "env(safe-area-inset-bottom)" in components
     assert "max-h-[calc(100dvh-2rem)]" in components
     assert "overflow-x-auto" in components
+
+
+def test_dark_mode_tokens_and_color_scheme_contract():
+    tokens = (ROOT / "ui" / "tokens.css").read_text()
+    main_css = (ROOT / "ui" / "main.css").read_text()
+
+    assert ":root.dark" in tokens
+    assert ':root[data-theme="dark"]' in tokens
+    assert "color-scheme: dark" in tokens
+    assert "@media (prefers-color-scheme: dark)" in tokens
+    assert "--ui-primary: #8fd3ca" in tokens
+    assert "--ui-surface: #121817" in tokens
+    assert "@custom-variant dark" in main_css
+

@@ -10,10 +10,37 @@
     x-data="{
         sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
         mobileOpen: false,
+        darkMode: document.documentElement.classList.contains('dark'),
+        toggleTheme() {
+            this.darkMode = !this.darkMode;
+            if (this.darkMode) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+            if (typeof lucide !== 'undefined') {
+                this.$nextTick(() => lucide.createIcons());
+            }
+        },
         init() {
             this.$watch('sidebarCollapsed', value => localStorage.setItem('sidebar_collapsed', value));
             window.addEventListener('resize', () => {
                 if (window.innerWidth >= 1024) this.mobileOpen = false;
+            });
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) {
+                    this.darkMode = e.matches;
+                    if (e.matches) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                    if (typeof lucide !== 'undefined') {
+                        this.$nextTick(() => lucide.createIcons());
+                    }
+                }
             });
         }
     }">

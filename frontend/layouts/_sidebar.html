@@ -84,6 +84,19 @@
         </nav>
 
         <div class="p-3 border-t border-outline-variant space-y-1">
+            <button
+                type="button"
+                @click="toggleTheme()"
+                data-testid="sidebar-theme-toggle-button"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors text-left"
+                :title="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+                :aria-label="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+            >
+                <i x-show="!darkMode" data-lucide="moon" class="w-5 h-5 shrink-0"></i>
+                <i x-show="darkMode" data-lucide="sun" class="w-5 h-5 shrink-0"></i>
+                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium" x-text="darkMode ? 'Light Theme' : 'Dark Theme'"></span>
+            </button>
+
             <a
                 href="{% url 'dashboard:profile' %}"
                 @click="mobileOpen = false"

@@ -26,6 +26,19 @@
 
     <!-- Right Section -->
     <div class="flex items-center gap-2">
+        <!-- Theme Toggle -->
+        <button
+            type="button"
+            @click="toggleTheme()"
+            data-testid="theme-toggle-button"
+            class="p-2 rounded-lg hover:bg-surface-container-low text-on-surface-variant hover:text-on-surface transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            :title="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+            :aria-label="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+        >
+            <i x-show="!darkMode" data-lucide="moon" class="w-5 h-5"></i>
+            <i x-show="darkMode" data-lucide="sun" class="w-5 h-5"></i>
+        </button>
+
         <!-- Notifications -->
         <button
             class="relative p-2 rounded-lg hover:bg-surface-container-low text-on-surface-variant transition-colors"
@@ -75,6 +88,18 @@
                     <i data-lucide="user" class="w-4 h-4"></i>
                     My Profile
                 </a>
+                <button
+                    type="button"
+                    @click="toggleTheme()"
+                    class="w-full flex items-center justify-between px-4 py-2 text-sm text-on-surface hover:bg-surface-container-low transition-colors text-left"
+                >
+                    <div class="flex items-center gap-2">
+                        <i x-show="!darkMode" data-lucide="moon" class="w-4 h-4"></i>
+                        <i x-show="darkMode" data-lucide="sun" class="w-4 h-4"></i>
+                        <span x-text="darkMode ? 'Light Mode' : 'Dark Mode'"></span>
+                    </div>
+                    <span class="text-xs text-on-surface-variant uppercase tracking-wider" x-text="darkMode ? 'Dark' : 'Light'"></span>
+                </button>
                 <hr class="border-outline-variant my-1">
                 <form method="post" action="{% url 'dashboard:logout' %}" class="m-0">
                     {% csrf_token %}
