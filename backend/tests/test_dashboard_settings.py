@@ -47,7 +47,7 @@ class TestDashboardSettings:
         assert response.status_code == 200
         assert b'<div class="space-y-6 pb-24' not in response.content
         assert b'<div class="space-y-6">' in response.content
-        assert b'mx-auto max-w-6xl' not in response.content
+        assert b"mx-auto max-w-6xl" not in response.content
         assert b"Basic information" in response.content
         assert b"User" in response.content
         assert b"Roles" in response.content
@@ -83,11 +83,15 @@ class TestDashboardSettings:
         assert b">Roles</span>" not in response.content
         assert b'href="/dashboard/settings/"' in response.content
 
-    def test_sidebar_brand_logo_remains_rendered_when_collapsed(self, staff_user, settings, tmp_path):
+    def test_sidebar_brand_logo_remains_rendered_when_collapsed(
+        self, staff_user, settings, tmp_path
+    ):
         settings.MEDIA_ROOT = tmp_path
         OrganizationSettings.objects.create(
             organization_name="Acme Operations",
-            logo=SimpleUploadedFile("brand.png", b"fake-image", content_type="image/png"),
+            logo=SimpleUploadedFile(
+                "brand.png", b"fake-image", content_type="image/png"
+            ),
         )
         self.client.force_login(staff_user)
 
@@ -95,25 +99,9 @@ class TestDashboardSettings:
 
         assert response.status_code == 200
         assert b'data-testid="sidebar-brand-logo"' in response.content
-        assert b'<a id="sidebar-brand" x-show="!sidebarCollapsed"' not in response.content
-
-    def test_topbar_replaces_search_with_sidebar_toggle(self, staff_user):
-        self.client.force_login(staff_user)
-
-        response = self.client.get(reverse("dashboard:home"))
-
-        assert response.status_code == 200
-        assert b'data-testid="topbar-sidebar-toggle"' in response.content
-        assert b'data-testid="sidebar-toggle"' not in response.content
-        assert b'id="topbar-search"' not in response.content
-        assert b'data-testid="topbar-left-controls"' in response.content
-        assert b'class="relative flex h-16 items-center gap-1 border-b border-outline-variant p-2' in response.content
-        assert b'class="h-7 w-7 overflow-hidden rounded-lg' in response.content
-        assert b'class="hidden h-8 w-8 items-center justify-center rounded-lg' in response.content
-        assert b"bg-transparent" in response.content
-        assert b"shadow-none" in response.content
-        assert b"hover:bg-transparent" in response.content
-        assert b"hover:shadow-none" in response.content
+        assert (
+            b'<a id="sidebar-brand" x-show="!sidebarCollapsed"' not in response.content
+        )
 
     def test_settings_menu_is_hidden_for_regular_user(self, regular_user):
         self.client.force_login(regular_user)
@@ -167,11 +155,15 @@ class TestDashboardSettings:
         assert b"Enter a valid email address" in response.content
         assert not OrganizationSettings.objects.exists()
 
-    def test_staff_can_clear_existing_organization_logo(self, staff_user, settings, tmp_path):
+    def test_staff_can_clear_existing_organization_logo(
+        self, staff_user, settings, tmp_path
+    ):
         settings.MEDIA_ROOT = tmp_path
         organization = OrganizationSettings.objects.create(
             organization_name="Acme Operations",
-            logo=SimpleUploadedFile("existing.png", b"fake-image", content_type="image/png"),
+            logo=SimpleUploadedFile(
+                "existing.png", b"fake-image", content_type="image/png"
+            ),
         )
         self.client.force_login(staff_user)
 

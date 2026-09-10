@@ -34,7 +34,7 @@
         </form>
     </section>
 
-    <form id="user-filters" class="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-4 shadow-sm" hx-get="{% url 'dashboard:users_table' %}" hx-target="#users-table-region" hx-trigger="input changed delay:400ms, change">
+    <form id="user-filters" class="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-4 shadow-sm" hx-get="{% url 'dashboard:users_table' %}" hx-target="#users-table-region" hx-trigger="input changed delay:400ms from:#user-search, change">
         {% if filters.role %}<input type="hidden" name="role" value="{{ filters.role }}">{% endif %}
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
             <div class="space-y-1.5 sm:col-span-2">

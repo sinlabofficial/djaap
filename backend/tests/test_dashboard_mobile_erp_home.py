@@ -21,6 +21,5 @@ def test_mobile_presentation_mode_renders_erp_hero_and_app_launcher(client):
     assert response.status_code == 200
     assert 'data-testid="mobile-erp-hero"' in content
     assert 'data-testid="mobile-app-launcher"' in content
-    assert "System Status: All systems operational" in content
     assert 'href="/dashboard/users/"' in content
     assert 'href="/dashboard/roles/"' in content

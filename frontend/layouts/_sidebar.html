@@ -1,128 +1,79 @@
 <div class="relative z-50">
-    <div
-        x-show="mobileOpen"
-        x-transition:enter="transition-opacity ease-out duration-200"
-        x-transition:leave="transition-opacity ease-in duration-150"
-        class="fixed inset-0 bg-black/50 z-40 lg:hidden"
-        @click="mobileOpen = false"
-        x-cloak
-    ></div>
+    <div x-show="mobileOpen" x-transition.opacity class="fixed inset-0 z-40 bg-black/40 lg:hidden" @click="closeNavigation()" aria-hidden="true" x-cloak></div>
 
-    <aside
-        :class="{
-            'w-64': !sidebarCollapsed && !mobileOpen,
-            'w-20': sidebarCollapsed && !mobileOpen,
-            'translate-x-0': mobileOpen,
-            '-translate-x-full lg:translate-x-0': !mobileOpen
-        }"
-        class="fixed left-0 top-0 h-screen bg-surface-container flex flex-col z-50 transition-all duration-300 ease-in-out border-r border-outline-variant"
-        :style="sidebarCollapsed && !mobileOpen ? 'width: 5rem;' : ''"
-    >
-        <div class="relative flex h-16 items-center gap-1 border-b border-outline-variant p-2" :class="sidebarCollapsed ? 'justify-center' : 'justify-between'">
-            <a id="sidebar-brand" href="/dashboard/" class="flex min-w-0 items-center gap-3" @click="mobileOpen = false">
-                <div data-testid="sidebar-brand-logo" class="h-7 w-7 overflow-hidden rounded-lg bg-primary flex items-center justify-center shrink-0">
+    <aside id="dashboard-navigation" x-ref="navigation" x-cloak
+        :class="[desktop && sidebarCollapsed ? 'w-20' : 'w-64', desktop || mobileOpen ? 'translate-x-0' : '-translate-x-full']"
+        :inert="!desktop && !mobileOpen"
+        :role="desktop ? null : 'dialog'"
+        :aria-modal="!desktop && mobileOpen ? 'true' : null"
+        aria-label="Dashboard navigation"
+        class="fixed inset-y-0 left-0 z-50 flex max-w-[calc(100vw-2rem)] flex-col border-r border-outline-variant bg-surface-container-lowest transition-transform duration-200 motion-reduce:transition-none">
+        <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-outline-variant px-4">
+            <a id="sidebar-brand" href="/dashboard/" aria-label="{{ organization.organization_name|default:'djaapp' }} dashboard" title="{{ organization.organization_name|default:'djaapp' }}" class="flex min-h-11 min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" @click="closeNavigation(false)">
+                <div data-testid="sidebar-brand-logo" class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary">
                     {% if organization and organization.logo %}
-                    <img src="{{ organization.logo.url }}" alt="{{ organization.organization_name }} logo" class="h-full w-full object-contain">
+                    <img src="{{ organization.logo.url }}" alt="" class="h-full w-full object-contain">
                     {% else %}
-                    <span class="text-on-primary font-bold text-sm">{{ organization.organization_name|first|upper|default:"D" }}</span>
+                    <span class="text-sm font-bold text-on-primary">{{ organization.organization_name|first|upper|default:"D" }}</span>
                     {% endif %}
                 </div>
-                <div x-show="!sidebarCollapsed" x-transition class="flex flex-col truncate">
-                    <span class="font-bold text-on-surface truncate leading-tight">{{ organization.organization_name|default:"djaapp" }}</span>
-                    <span class="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider"></span>
-                </div>
+                <span x-show="!desktop || !sidebarCollapsed" class="truncate text-sm font-semibold tracking-tight text-on-surface">{{ organization.organization_name|default:"djaapp" }}</span>
             </a>
-            <button
-                @click="mobileOpen = false"
-                class="lg:hidden p-1.5 rounded-md hover:bg-surface-container-low text-on-surface-variant"
-            >
-                <i data-lucide="x" class="w-5 h-5"></i>
+            <button type="button" x-ref="navigationClose" @click="closeNavigation()" aria-label="Close navigation" class="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-on-surface-variant hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden">
+                <i data-lucide="x" class="h-5 w-5" aria-hidden="true"></i>
             </button>
         </div>
 
-        <nav class="flex-1 overflow-y-auto p-3 space-y-1">
-            <a
-                href="/dashboard/"
-                @click="mobileOpen = false"
-                :class="window.location.pathname === '/dashboard/' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            >
-                <i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0"></i>
-                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Dashboard</span>
+        <nav aria-label="Primary navigation" class="flex-1 space-y-1 overflow-y-auto p-3">
+            <a href="/dashboard/" @click="closeNavigation(false)" aria-label="Dashboard" title="Dashboard"
+                {% if request.path == '/dashboard/' %}aria-current="page"{% endif %}
+                class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary {% if request.path == '/dashboard/' %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface{% endif %}">
+                <i data-lucide="layout-dashboard" class="h-5 w-5 shrink-0" aria-hidden="true"></i>
+                <span :class="desktop && sidebarCollapsed ? 'sr-only' : ''">Dashboard</span>
             </a>
-
-            <a
-                href="{% url 'example:list' %}"
-                @click="mobileOpen = false"
-                :class="window.location.pathname.startsWith('/dashboard/example/') ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            >
-                <i data-lucide="package" class="w-5 h-5 shrink-0"></i>
-                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Example Items</span>
+            <a href="{% url 'example:list' %}" @click="closeNavigation(false)" aria-label="Example items" title="Example items"
+                {% if '/dashboard/example/' in request.path %}aria-current="page"{% endif %}
+                class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary {% if '/dashboard/example/' in request.path %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface{% endif %}">
+                <i data-lucide="package" class="h-5 w-5 shrink-0" aria-hidden="true"></i>
+                <span :class="desktop && sidebarCollapsed ? 'sr-only' : ''">Example items</span>
             </a>
-
             {% if request.user.is_staff or request.user.is_superuser %}
-            <a
-                href="{% url 'dashboard:logs' %}"
-                @click="mobileOpen = false"
-                :class="window.location.pathname.startsWith('/dashboard/logs/') ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
-                class="text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            >
-                <i data-lucide="scroll-text" class="w-5 h-5 shrink-0"></i>
-                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Logs</span>
+            <a href="{% url 'dashboard:logs' %}" @click="closeNavigation(false)" aria-label="Logs" title="Logs"
+                {% if '/dashboard/logs/' in request.path %}aria-current="page"{% endif %}
+                class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary {% if '/dashboard/logs/' in request.path %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface{% endif %}">
+                <i data-lucide="scroll-text" class="h-5 w-5 shrink-0" aria-hidden="true"></i>
+                <span :class="desktop && sidebarCollapsed ? 'sr-only' : ''">Logs</span>
             </a>
-            <a
-                href="{% url 'dashboard:settings' %}"
-                @click="mobileOpen = false"
-                :class="window.location.pathname.startsWith('/dashboard/settings/') ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
-                class="text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
-            >
-                <i data-lucide="settings" class="w-5 h-5 shrink-0"></i>
-                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Settings</span>
+            <a href="{% url 'dashboard:settings' %}" @click="closeNavigation(false)" aria-label="Settings" title="Settings"
+                {% if '/dashboard/settings/' in request.path %}aria-current="page"{% endif %}
+                class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary {% if '/dashboard/settings/' in request.path %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface{% endif %}">
+                <i data-lucide="settings" class="h-5 w-5 shrink-0" aria-hidden="true"></i>
+                <span :class="desktop && sidebarCollapsed ? 'sr-only' : ''">Settings</span>
             </a>
             {% endif %}
         </nav>
 
-        <div class="p-3 border-t border-outline-variant space-y-1">
-            <button
-                type="button"
-                @click="toggleTheme()"
-                data-testid="sidebar-theme-toggle-button"
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors text-left"
-                :title="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-                :aria-label="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-            >
-                <i x-show="!darkMode" data-lucide="moon" class="w-5 h-5 shrink-0"></i>
-                <i x-show="darkMode" data-lucide="sun" class="w-5 h-5 shrink-0"></i>
-                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium" x-text="darkMode ? 'Light Theme' : 'Dark Theme'"></span>
+        <div class="space-y-1 border-t border-outline-variant p-3">
+            <button type="button" @click="toggleTheme()" data-testid="sidebar-theme-toggle-button"
+                class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                :title="darkMode ? 'Switch to light mode' : 'Switch to dark mode'" :aria-label="darkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+                <i x-show="!darkMode" data-lucide="moon" class="h-5 w-5 shrink-0" aria-hidden="true"></i>
+                <i x-show="darkMode" data-lucide="sun" class="h-5 w-5 shrink-0" aria-hidden="true"></i>
+                <span :class="desktop && sidebarCollapsed ? 'sr-only' : ''" x-text="darkMode ? 'Light theme' : 'Dark theme'"></span>
             </button>
-
-            <a
-                href="{% url 'dashboard:profile' %}"
-                @click="mobileOpen = false"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors"
-            >
-                <i data-lucide="user" class="w-5 h-5 shrink-0"></i>
-                <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Profile</span>
+            <a href="{% url 'dashboard:profile' %}" @click="closeNavigation(false)" aria-label="Profile" title="Profile"
+                {% if '/dashboard/profile/' in request.path %}aria-current="page"{% endif %}
+                class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary {% if '/dashboard/profile/' in request.path %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface{% endif %}">
+                <i data-lucide="user" class="h-5 w-5 shrink-0" aria-hidden="true"></i>
+                <span :class="desktop && sidebarCollapsed ? 'sr-only' : ''">Profile</span>
             </a>
-
             <form method="post" action="{% url 'dashboard:logout' %}" class="m-0">
                 {% csrf_token %}
-                <button
-                    type="submit"
-                    @click="mobileOpen = false"
-                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors text-left"
-                >
-                    <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i>
-                    <span x-show="!sidebarCollapsed" x-transition class="text-sm font-medium">Logout</span>
+                <button type="submit" @click="closeNavigation(false)" aria-label="Logout" title="Logout" class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                    <i data-lucide="log-out" class="h-5 w-5 shrink-0" aria-hidden="true"></i>
+                    <span :class="desktop && sidebarCollapsed ? 'sr-only' : ''">Logout</span>
                 </button>
             </form>
         </div>
     </aside>
 </div>
-
-<style>
-    [x-cloak] {
-        display: none !important;
-    }
-</style>

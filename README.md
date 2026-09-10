@@ -8,6 +8,9 @@ HTMX, Alpine.js, TailwindCSS, PostgreSQL, Docker, authentication, RBAC,
 audit logging, optional REST integration, and a replaceable Domain App
 example.
 
+Panduan berbahasa Indonesia:
+[Pengembangan aplikasi dengan djaapp](docs/guides/pengembangan-aplikasi.md).
+
 ## What djaapp provides
 
 - Django Templates as the primary presentation boundary.

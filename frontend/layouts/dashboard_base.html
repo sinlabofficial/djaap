@@ -1,15 +1,48 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block extra_css %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-{% endblock %}
-
-{% block content %}
-<div class="{% if presentation_mode == 'mobile' %}min-h-screen bg-surface text-on-surface antialiased{% else %}fixed inset-0 flex bg-surface text-on-surface antialiased overflow-hidden z-40{% endif %}"
+{% block body_content %}
+<div class="dashboard-app {% if presentation_mode == 'mobile' %}min-h-dvh bg-surface text-on-surface antialiased{% else %}fixed inset-0 z-40 flex overflow-hidden bg-surface text-on-surface antialiased{% endif %}"
     x-data="{
         sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
         mobileOpen: false,
+        desktop: window.innerWidth >= 1024,
+        navigationTrigger: null,
+        themeQuery: null,
+        themeListener: null,
+        openNavigation(trigger) {
+            this.navigationTrigger = trigger;
+            this.mobileOpen = true;
+            this.$nextTick(() => this.$refs.navigationClose.focus());
+        },
+        closeNavigation(restore = true) {
+            this.mobileOpen = false;
+            if (restore) this.$nextTick(() => this.navigationTrigger?.focus());
+        },
+        resizeNavigation() {
+            this.desktop = window.innerWidth >= 1024;
+            if (this.desktop && this.mobileOpen) {
+                this.closeNavigation(false);
+                this.$nextTick(() => this.$refs.sidebarToggle.focus());
+            }
+            if (!this.desktop && !this.mobileOpen && this.$refs.navigation?.contains(document.activeElement)) {
+                this.$refs.navigationToggle?.focus();
+            }
+        },
+        trapNavigation(event) {
+            if (!this.mobileOpen || event.key !== 'Tab') return;
+            const controls = [...this.$refs.navigation.querySelectorAll('a[href], button:not([disabled])')]
+                .filter(element => element.getClientRects().length);
+            const first = controls[0];
+            const last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        },
         darkMode: document.documentElement.classList.contains('dark'),
         toggleTheme() {
             this.darkMode = !this.darkMode;
@@ -26,10 +59,8 @@
         },
         init() {
             this.$watch('sidebarCollapsed', value => localStorage.setItem('sidebar_collapsed', value));
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 1024) this.mobileOpen = false;
-            });
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            this.themeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            this.themeListener = (e) => {
                 if (!localStorage.getItem('theme')) {
                     this.darkMode = e.matches;
                     if (e.matches) {
@@ -41,9 +72,17 @@
                         this.$nextTick(() => lucide.createIcons());
                     }
                 }
-            });
+            };
+            this.themeQuery.addEventListener('change', this.themeListener);
+        },
+        destroy() {
+            this.themeQuery.removeEventListener('change', this.themeListener);
         }
-    }">
+    }"
+    @resize.window.debounce.100ms="resizeNavigation()"
+    @keydown.window="trapNavigation($event); if (mobileOpen && $event.key === 'Escape') { $event.preventDefault(); closeNavigation(); }"
+    @focusin.window="if (mobileOpen && !$refs.navigation.contains($event.target)) $refs.navigationClose.focus()">
+    <a href="#dashboard-content" :inert="mobileOpen" class="fixed left-4 top-3 z-[60] -translate-y-24 rounded-lg bg-primary px-4 py-3 font-medium text-on-primary focus:translate-y-0" @click.prevent="document.getElementById('dashboard-content').focus()">Skip to content</a>
     {% include "layouts/_components.html" %}
     {% include "layouts/_components.html#toast" %}
     {% if presentation_mode == 'mobile' %}
@@ -51,13 +90,14 @@
     {% else %}
         {% include "layouts/_sidebar.html" %}
         <div
-            class="flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ease-in-out"
+            class="flex min-w-0 flex-1 flex-col overflow-hidden"
+            :inert="mobileOpen"
             :class="sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'"
         >
             {% include "layouts/_topbar.html" %}
     {% endif %}
 
-    <main class="{% if presentation_mode == 'mobile' %}min-h-[calc(100vh-4rem)] overflow-y-auto px-4 pb-24 pt-5{% else %}flex-1 overflow-y-auto p-4 lg:p-6 relative{% endif %}">
+    <main id="dashboard-content" tabindex="-1" :inert="mobileOpen" class="min-w-0 focus:outline-none {% if presentation_mode == 'mobile' %}min-h-[calc(100dvh-4rem)] overflow-y-auto px-4 pb-24 pt-5{% else %}relative flex-1 overflow-y-auto p-4 lg:p-6{% endif %}">
         {% block page_content %}{% endblock %}
     </main>
 
@@ -68,12 +108,11 @@
 {% block extra_js %}
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
-    });
-
+    const initializeDashboardIcons = () => {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    };
+    document.addEventListener("DOMContentLoaded", initializeDashboardIcons);
+    document.addEventListener("htmx:after:swap", initializeDashboardIcons);
     // Realtime is an enhancement: notifications only invalidate UI; HTMX/HTTP
     // remains the authoritative state source and polling works without Channels.
     (() => {

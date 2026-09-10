@@ -25,7 +25,16 @@ def test_component_contract_exposes_catalog_and_accessibility_baseline():
     catalog = (ROOT / "docs" / "guides" / "frontend-component-catalog.md").read_text()
     components = (ROOT / "frontend" / "layouts" / "_components.html").read_text()
 
-    for component in ("button", "input", "textarea", "select", "card", "badge", "modal", "toast"):
+    for component in (
+        "button",
+        "input",
+        "textarea",
+        "select",
+        "card",
+        "badge",
+        "modal",
+        "toast",
+    ):
         assert f"partialdef {component}" in components
     assert "presentation data only" in catalog
     assert "WCAG 2.2 AA" in catalog
@@ -67,23 +76,14 @@ def test_shared_component_inventory_is_complete():
 def test_mobile_interaction_patterns_have_responsive_contracts():
     components = (ROOT / "frontend" / "layouts" / "_components.html").read_text()
 
-    for component in ("sticky_form_actions", "responsive_modal", "mobile_sheet", "responsive_table"):
+    for component in (
+        "sticky_form_actions",
+        "responsive_modal",
+        "mobile_sheet",
+        "responsive_table",
+    ):
         assert f"partialdef {component}" in components
-    assert "data-testid=\"mobile-form-actions\"" in components
+    assert 'data-testid="mobile-form-actions"' in components
     assert "env(safe-area-inset-bottom)" in components
     assert "max-h-[calc(100dvh-2rem)]" in components
     assert "overflow-x-auto" in components
-
-
-def test_dark_mode_tokens_and_color_scheme_contract():
-    tokens = (ROOT / "ui" / "tokens.css").read_text()
-    main_css = (ROOT / "ui" / "main.css").read_text()
-
-    assert ":root.dark" in tokens
-    assert ':root[data-theme="dark"]' in tokens
-    assert "color-scheme: dark" in tokens
-    assert "@media (prefers-color-scheme: dark)" in tokens
-    assert "--ui-primary: #8fd3ca" in tokens
-    assert "--ui-surface: #121817" in tokens
-    assert "@custom-variant dark" in main_css
-

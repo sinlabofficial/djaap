@@ -1,49 +1,60 @@
-<header data-testid="mobile-shell" class="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-outline-variant bg-surface px-4 py-3">
-    <a href="{% url 'dashboard:home' %}" class="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Go to dashboard">
-        <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-sm font-bold text-on-primary">{{ organization.organization_name|first|upper|default:"D" }}</span>
-        <span class="min-w-0 truncate text-sm font-semibold text-on-surface">{{ organization.organization_name|default:"djaapp" }}</span>
+<header data-testid="mobile-shell" class="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-outline-variant bg-surface-container-lowest px-4 py-2">
+    <a href="{% url 'dashboard:home' %}" class="flex min-h-11 min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="{{ organization.organization_name|default:'djaapp' }} dashboard">
+        <span class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-primary text-sm font-bold text-on-primary">
+            {% if organization and organization.logo %}<img src="{{ organization.logo.url }}" alt="" class="h-full w-full object-contain">{% else %}{{ organization.organization_name|first|upper|default:"D" }}{% endif %}
+        </span>
+        <span class="min-w-0 truncate text-sm font-semibold tracking-tight text-on-surface">{{ organization.organization_name|default:"djaapp" }}</span>
     </a>
-    <div class="flex items-center gap-1" x-data="{ open: false }">
-        <button
-            type="button"
-            @click="toggleTheme()"
-            data-testid="mobile-theme-toggle-button"
+    <div class="flex shrink-0 items-center gap-1">
+        <button type="button" @click="toggleTheme()" data-testid="mobile-theme-toggle-button"
             class="grid h-11 w-11 place-items-center rounded-lg text-on-surface-variant hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            :title="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-            :aria-label="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
-        >
+            :title="darkMode ? 'Switch to light mode' : 'Switch to dark mode'" :aria-label="darkMode ? 'Switch to light mode' : 'Switch to dark mode'">
             <i x-show="!darkMode" data-lucide="moon" class="h-5 w-5" aria-hidden="true"></i>
             <i x-show="darkMode" data-lucide="sun" class="h-5 w-5" aria-hidden="true"></i>
         </button>
-        <button type="button" class="grid h-11 w-11 place-items-center rounded-lg text-on-surface-variant hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Notifications">
-            <i data-lucide="bell" class="h-5 w-5" aria-hidden="true"></i>
-        </button>
-        <button type="button" class="grid h-11 w-11 place-items-center rounded-lg text-on-surface-variant hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Open profile menu" x-on:click="open = !open" x-on:click.outside="open = false">
-            <span class="grid h-8 w-8 place-items-center rounded-full bg-primary-container text-sm font-semibold text-on-primary-container">{{ request.user.get_full_name|first|upper|default:"U" }}</span>
-        </button>
-        <div x-show="open" x-cloak class="absolute right-4 top-14 z-40 w-48 rounded-xl border border-outline-variant bg-surface-container-lowest p-2 shadow-lg">
-            <a href="{% url 'dashboard:profile' %}" class="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Profile</a>
-            <button type="button" @click="toggleTheme(); open = false" class="flex min-h-11 w-full items-center justify-between rounded-lg px-3 text-left text-sm hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                <span x-text="darkMode ? 'Light Mode' : 'Dark Mode'"></span>
-                <i x-show="!darkMode" data-lucide="moon" class="h-4 w-4" aria-hidden="true"></i>
-                <i x-show="darkMode" data-lucide="sun" class="h-4 w-4" aria-hidden="true"></i>
+        <div class="relative" x-data="{ open: false, close(restore = true) { if (!this.open) return; this.open = false; if (restore) this.$refs.profileTrigger.focus(); } }"
+            @click.outside="close($el.contains(document.activeElement))"
+            @focusout="if ($event.relatedTarget && !$el.contains($event.relatedTarget)) close(false)"
+            @keydown.escape.window="if (open) { $event.preventDefault(); close(); }">
+            <button type="button" x-ref="profileTrigger" @click="open = !open" @keydown.arrow-down.prevent="open = true; $nextTick(() => $refs.profilePanel.querySelector('a').focus())"
+                aria-label="Account options" aria-controls="mobile-profile-options" :aria-expanded="open" class="grid h-11 w-11 place-items-center rounded-lg text-on-surface-variant hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <span class="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-primary-container text-sm font-semibold text-on-primary-container">
+                    {% if request.user.profile_photo %}<img src="{{ request.user.profile_photo.url }}" alt="" class="h-full w-full object-cover">{% else %}{{ request.user.get_full_name|first|upper|default:"U" }}{% endif %}
+                </span>
             </button>
-            <form method="post" action="{% url 'dashboard:logout' %}">{% csrf_token %}<button type="submit" class="flex min-h-11 w-full items-center rounded-lg px-3 text-left text-sm text-error hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">Logout</button></form>
+            <div id="mobile-profile-options" x-ref="profilePanel" x-show="open" x-cloak class="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-outline-variant bg-surface-container-lowest p-2 shadow-lg">
+                <div class="mb-1 border-b border-outline-variant px-3 pb-3 pt-2">
+                    <p class="truncate text-sm font-semibold text-on-surface">{{ request.user.get_full_name|default:request.user.email|default:"User" }}</p>
+                    {% if request.user.email %}<p class="mt-0.5 break-all text-xs text-on-surface-variant">{{ request.user.email }}</p>{% endif %}
+                    <p class="mt-1 text-xs text-on-surface-variant">{% if request.user.is_superuser %}Superuser{% elif request.user.is_staff %}Staff{% else %}Member{% endif %}</p>
+                </div>
+                <a href="{% url 'dashboard:profile' %}" class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><i data-lucide="user" class="h-4 w-4" aria-hidden="true"></i>My profile</a>
+                <button type="button" @click="toggleTheme()" class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                    <i x-show="!darkMode" data-lucide="moon" class="h-4 w-4" aria-hidden="true"></i>
+                    <i x-show="darkMode" data-lucide="sun" class="h-4 w-4" aria-hidden="true"></i>
+                    <span x-text="darkMode ? 'Light mode' : 'Dark mode'"></span>
+                </button>
+                <form method="post" action="{% url 'dashboard:logout' %}">{% csrf_token %}<button type="submit" class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm text-error hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><i data-lucide="log-out" class="h-4 w-4" aria-hidden="true"></i>Logout</button></form>
+            </div>
         </div>
     </div>
 </header>
 
 <nav data-testid="mobile-bottom-navigation" class="fixed inset-x-0 bottom-0 z-30 grid {% if mobile_navigation_columns == 5 %}grid-cols-5{% elif mobile_navigation_columns == 4 %}grid-cols-4{% else %}grid-cols-3{% endif %} border-t border-outline-variant bg-surface-container-lowest pb-[env(safe-area-inset-bottom)]" aria-label="Primary navigation">
     {% for item in mobile_navigation %}
-    <a href="{{ item.url }}" class="flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary {% if item.active %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">
+    <a href="{{ item.url }}" {% if item.active %}aria-current="page"{% endif %} class="flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary {% if item.active %}bg-primary-container text-on-primary-container{% else %}text-on-surface-variant hover:bg-surface-container-low{% endif %}">
         <i data-lucide="{{ item.icon }}" class="h-5 w-5" aria-hidden="true"></i><span>{{ item.label }}</span>
     </a>
     {% endfor %}
     {% if mobile_more_navigation %}
-    <div x-data="{ open: false }" class="relative flex min-h-16 items-center justify-center">
-        <button type="button" class="flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium text-on-surface-variant hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary" aria-label="Open more navigation" x-on:click="open = true"><i data-lucide="ellipsis" class="h-5 w-5" aria-hidden="true"></i><span>More</span></button>
-        <div x-show="open" x-cloak x-on:click.outside="open = false" class="absolute bottom-16 right-2 w-56 rounded-xl border border-outline-variant bg-surface-container-lowest p-2 shadow-lg">
-            {% for item in mobile_more_navigation %}<a href="{{ item.url }}" class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><i data-lucide="{{ item.icon }}" class="h-4 w-4" aria-hidden="true"></i>{{ item.label }}</a>{% endfor %}
+    <div x-data="{ open: false, close(restore = true) { if (!this.open) return; this.open = false; if (restore) this.$refs.moreTrigger.focus(); } }" class="relative flex min-h-16 items-center justify-center"
+        @click.outside="close($el.contains(document.activeElement))"
+        @focusout="if ($event.relatedTarget && !$el.contains($event.relatedTarget)) close(false)"
+        @keydown.escape.window="if (open) { $event.preventDefault(); close(); }">
+        <button type="button" x-ref="moreTrigger" aria-controls="mobile-more-navigation" :aria-expanded="open" @click="open = !open" @keydown.arrow-up.prevent="open = true; $nextTick(() => $refs.morePanel.querySelector('a').focus())"
+            class="flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium text-on-surface-variant hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary" aria-label="More navigation"><i data-lucide="ellipsis" class="h-5 w-5" aria-hidden="true"></i><span>More</span></button>
+        <div id="mobile-more-navigation" x-ref="morePanel" x-show="open" x-cloak class="absolute bottom-full right-2 mb-2 max-h-[60vh] w-56 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-outline-variant bg-surface-container-lowest p-2 shadow-lg">
+            {% for item in mobile_more_navigation %}<a href="{{ item.url }}" {% if item.active %}aria-current="page"{% endif %} class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary {% if item.active %}bg-primary-container text-on-primary-container{% else %}hover:bg-surface-container-low{% endif %}"><i data-lucide="{{ item.icon }}" class="h-4 w-4" aria-hidden="true"></i>{{ item.label }}</a>{% endfor %}
         </div>
     </div>
     {% endif %}

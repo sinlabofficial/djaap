@@ -19,20 +19,24 @@
         })();
     </script>
     <link rel="stylesheet" href="{% static 'bundles/main.css' %}">
+    <meta name="htmx-config" content='{"noSwap": [204, 304, "4xx", "5xx"]}'>
+    <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0/dist/htmx.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0/dist/ext/hx-alpine-compat.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://unpkg.com/htmx.org@2.0.10"></script>
     <script>
-        document.addEventListener("htmx:configRequest", (event) => {
-            event.detail.headers["X-CSRFToken"] = document.querySelector('meta[name="csrf-token"]')?.content || "";
+        document.addEventListener("htmx:config:request", (event) => {
+            event.detail.ctx.request.headers["X-CSRFToken"] = document.querySelector('meta[name="csrf-token"]')?.content || "";
         });
     </script>
     <style>[x-cloak] { display: none !important; }</style>
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-surface text-on-surface font-sans" x-data="{}">
+    {% block body_content %}
     <main class="container mx-auto px-4 py-8">
         {% block content %}{% endblock %}
     </main>
+    {% endblock %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>

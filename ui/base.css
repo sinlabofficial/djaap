@@ -13,3 +13,59 @@
     color: var(--ui-on-primary-container);
   }
 }
+
+@layer base {
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  .dashboard-app {
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dashboard-app :where(h1, h2, h3) {
+    min-width: 0;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-app :where(a, button, input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--ui-primary);
+    outline-offset: 3px;
+  }
+
+  .dashboard-app :where(button, a) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dashboard-app :where(button:not(:disabled), a[href]) {
+    touch-action: manipulation;
+  }
+
+  .dashboard-app :where(button:disabled, [aria-disabled="true"]) {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .dashboard-app :where(button:not(:disabled), a[href]):active {
+    opacity: 0.8;
+  }
+
+  .dashboard-app :where(main, nav) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ui-outline-variant) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dashboard-app *,
+    .dashboard-app *::before,
+    .dashboard-app *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

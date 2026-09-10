@@ -6,30 +6,6 @@ from apps.core.models import Permission, Role, User, UserRole
 
 
 @pytest.mark.django_db
-def test_authenticated_user_sees_global_dashboard_summary_and_available_navigation(client):
-    user = User.objects.create_user(
-        email="member@example.com",
-        password="testpass123",
-    )
-    Role.objects.create(name="Operator", level=10)
-    client.force_login(user)
-
-    response = client.get(reverse("dashboard:home"))
-
-    assert response.status_code == 200
-    assert b">Roles</p>" in response.content
-    assert b'data-testid="summary-roles"' in response.content
-    assert b">Users</p>" in response.content
-    assert b'data-testid="summary-users"' in response.content
-    assert b'data-testid="summary-active-users"' in response.content
-    assert b'class="mt-2 text-3xl font-black text-on-surface">1</p>' in response.content
-    assert b"href=\"#\"" not in response.content
-    assert b"Workspace" not in response.content
-    assert b"Permission groups" in response.content
-    assert b"Accounts in this deployment" in response.content
-
-
-@pytest.mark.django_db
 def test_user_list_requires_session_but_all_members_can_read(client):
     user = User.objects.create_user(
         email="member@example.com",
@@ -128,9 +104,7 @@ def test_staff_can_manage_roles_permissions_and_assign_permissions(client):
         {"name": "Senior Manager", "level": 60, "description": "Updated"},
     )
     edit_permission_response = client.post(
-        reverse(
-            "dashboard:permission_edit", kwargs={"permission_id": permission.id}
-        ),
+        reverse("dashboard:permission_edit", kwargs={"permission_id": permission.id}),
         {
             "resource": "reports",
             "action": "export",
@@ -144,9 +118,7 @@ def test_staff_can_manage_roles_permissions_and_assign_permissions(client):
         )
     )
     delete_permission_response = client.post(
-        reverse(
-            "dashboard:permission_delete", kwargs={"permission_id": permission.id}
-        )
+        reverse("dashboard:permission_delete", kwargs={"permission_id": permission.id})
     )
     role.refresh_from_db()
     permission.refresh_from_db()

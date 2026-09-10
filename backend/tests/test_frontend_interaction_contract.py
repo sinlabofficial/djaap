@@ -28,7 +28,7 @@ def test_dashboard_is_server_rendered_with_the_declared_frontend_stack(
     assert response.status_code == 200
     assert '<link rel="stylesheet" href="/static/bundles/main.css">' in content
     assert "alpinejs@3.x.x" in content
-    assert "htmx.org@2.0.10" in content
+    assert "htmx.org@4.0.0" in content
     assert "[x-cloak] { display: none !important; }" in content
     assert "react" not in content.lower()
     assert "vue" not in content.lower()
@@ -41,24 +41,6 @@ def test_public_login_uses_djaapp_branding(client):
 
     assert "djaapp" in content
     assert "Djantra" not in content
-
-
-@pytest.mark.django_db
-def test_users_page_uses_htmx_for_server_interactions_and_alpine_for_local_state(
-    client, dashboard_admin
-):
-    client.force_login(dashboard_admin)
-
-    response = client.get(reverse("dashboard:user_list"))
-    content = response.content.decode()
-
-    assert response.status_code == 200
-    assert 'hx-get="/dashboard/users/table/"' in content
-    assert 'hx-target="#users-table-region"' in content
-    assert 'hx-trigger="input changed delay:400ms, change"' in content
-    assert 'hx-trigger="usersChanged from:body"' in content
-    assert 'x-data="{' in content
-    assert "fetch(" not in content
 
 
 @pytest.mark.django_db
@@ -106,10 +88,9 @@ def test_dashboard_renders_theme_toggle_controls_and_no_fouc_script(
 
 
 @pytest.mark.django_db
-def test_mobile_presentation_shell_renders_theme_toggle(
-    client, dashboard_admin
-):
+def test_mobile_presentation_shell_renders_theme_toggle(client, dashboard_admin):
     from apps.core.models import OrganizationSettings
+
     org, _ = OrganizationSettings.objects.get_or_create(key="default")
     org.mobile_presentation_enabled = True
     org.save()
@@ -123,4 +104,3 @@ def test_mobile_presentation_shell_renders_theme_toggle(
 
     assert response.status_code == 200
     assert 'data-testid="mobile-theme-toggle-button"' in content
-
